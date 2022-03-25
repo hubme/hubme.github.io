@@ -20,25 +20,28 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="问道有先后，如是而已。">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Vance 的博客">
-<meta property="og:url" content="http://example.com/page/2/index.html">
+    <meta name="description" content="LayoutInflater 的作用是把布局 XML 文件解析成相应的 View 对象。由于性能原因，LayoutInflater 只能处理编译过的 xml 文件，不能处理原始的 xml 文件。 通过 Context#getSystemService(Context.LAYOUT_INFLATER_SERVICE) 系统服务获取 LayoutInflater 对象。 12345&#x2F;*** Insta">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 布局填充器">
+<meta property="og:url" content="http://example.com/2020/01/10/Android-%E5%B8%83%E5%B1%80%E5%A1%AB%E5%85%85%E5%99%A8/index.html">
 <meta property="og:site_name" content="Vance 的博客">
-<meta property="og:description" content="问道有先后，如是而已。">
+<meta property="og:description" content="LayoutInflater 的作用是把布局 XML 文件解析成相应的 View 对象。由于性能原因，LayoutInflater 只能处理编译过的 xml 文件，不能处理原始的 xml 文件。 通过 Context#getSystemService(Context.LAYOUT_INFLATER_SERVICE) 系统服务获取 LayoutInflater 对象。 12345&#x2F;*** Insta">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-10T15:54:05.000Z">
+<meta property="article:modified_time" content="2022-03-25T15:55:49.691Z">
 <meta property="article:author" content="Vance">
+<meta property="article:tag" content="View">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/page/2/">
+<link rel="canonical" href="http://example.com/2020/01/10/Android-%E5%B8%83%E5%B1%80%E5%A1%AB%E5%85%85%E5%99%A8/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"page/2/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2020/01/10/Android-%E5%B8%83%E5%B1%80%E5%A1%AB%E5%85%85%E5%99%A8/","path":"2020/01/10/Android-布局填充器/","title":"Android 布局填充器"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Vance 的博客</title>
+<title>Android 布局填充器 | Vance 的博客</title>
   
 
 
@@ -65,7 +68,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Vance 的博客</h1>
+      <p class="site-title">Vance 的博客</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -93,7 +96,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -106,6 +109,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E6%96%B9%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">主要方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View-%E5%A1%AB%E5%85%85%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">View 填充流程</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -157,200 +161,17 @@
 </noscript>
 
 
-    <div class="main-inner index posts-expand">
+    <div class="main-inner post posts-expand">
 
-    
+
+  
 
 
 <div class="post-block">
   
   
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/" class="post-title-link" itemprop="url">Android 通过 AIDL 实现进程间通信</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2021-02-02 16:46:04" itemprop="dateCreated datePublished" datetime="2021-02-02T16:46:04+08:00">2021-02-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/IPC/" itemprop="url" rel="index"><span itemprop="name">IPC</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>AIDL（Android Interface Definition Language） 是 Android 系统提供的进程间通信方式，底层是根据 Binder 机制实现，是对上层代码的封装。<br>Android 的系统服务基本上都是通过 AIDL 实现的，比如 AMS 通过 IApplicationThread.aidl 实现，WMS 通过 IWindowManager.aidl 实现。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/03/24/Java-%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%97%AD%E9%94%81-%E6%A0%85%E6%A0%8F-%E4%BF%A1%E5%8F%B7%E9%87%8F-%E4%BA%A4%E6%8D%A2%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/03/24/Java-%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%97%AD%E9%94%81-%E6%A0%85%E6%A0%8F-%E4%BF%A1%E5%8F%B7%E9%87%8F-%E4%BA%A4%E6%8D%A2%E5%99%A8/" class="post-title-link" itemprop="url">Java 并发之闭锁 栅栏 信号量 交换器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2020-03-24 23:29:53" itemprop="dateCreated datePublished" datetime="2020-03-24T23:29:53+08:00">2020-03-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-24 23:52:07" itemprop="dateModified" datetime="2022-03-24T23:52:07+08:00">2022-03-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>记录以下 Java 中的并发工具类闭锁 栅栏 信号量和交换器的基本使用。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/03/24/Java-%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%97%AD%E9%94%81-%E6%A0%85%E6%A0%8F-%E4%BF%A1%E5%8F%B7%E9%87%8F-%E4%BA%A4%E6%8D%A2%E5%99%A8/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2020/01/10/Android-%E5%B8%83%E5%B1%80%E5%A1%AB%E5%85%85%E5%99%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -364,13 +185,13 @@
     </span>
     
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
+      <meta itemprop="name" content="Android 布局填充器 | Vance 的博客">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/01/10/Android-%E5%B8%83%E5%B1%80%E5%A1%AB%E5%85%85%E5%99%A8/" class="post-title-link" itemprop="url">Android 布局填充器</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Android 布局填充器
+        </h1>
 
         <div class="post-meta-container">
           <div class="post-meta">
@@ -409,7 +230,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><code>LayoutInflater</code> 的作用是把布局 XML 文件解析成相应的 View 对象。由于性能原因，LayoutInflater 只能处理编译过的 xml 文件，不能处理原始的 xml 文件。</p>
+        <p><code>LayoutInflater</code> 的作用是把布局 XML 文件解析成相应的 View 对象。由于性能原因，LayoutInflater 只能处理编译过的 xml 文件，不能处理原始的 xml 文件。</p>
 <p>通过 <code>Context#getSystemService(Context.LAYOUT_INFLATER_SERVICE)</code> 系统服务获取 <code>LayoutInflater</code> 对象。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Instantiates a layout XML file into its corresponding View objects.</span></span><br><span class="line"><span class="comment">**/</span></span><br><span class="line"><span class="meta">@SystemService(Context.LAYOUT_INFLATER_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">LayoutInflater</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
 
@@ -427,7 +248,6 @@
 <p>源码分析：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//LayoutInflater.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG_MERGE</span> <span class="operator">=</span> <span class="string">&quot;merge&quot;</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG_INCLUDE</span> <span class="operator">=</span> <span class="string">&quot;include&quot;</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG_TAG</span> <span class="operator">=</span> <span class="string">&quot;tag&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> View <span class="title function_">inflate</span><span class="params">(<span class="meta">@LayoutRes</span> <span class="type">int</span> resource, <span class="meta">@Nullable</span> ViewGroup root, <span class="type">boolean</span> attachToRoot)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Resources</span> <span class="variable">res</span> <span class="operator">=</span> getContext().getResources();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">XmlResourceParser</span> <span class="variable">parser</span> <span class="operator">=</span> res.getLayout(resource);</span><br><span class="line">    <span class="keyword">return</span> inflate(parser, root, attachToRoot);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> View <span class="title function_">inflate</span><span class="params">(XmlPullParser parser, <span class="meta">@Nullable</span> ViewGroup root, <span class="type">boolean</span> attachToRoot)</span> &#123;</span><br><span class="line">    <span class="comment">//返回指定的 root View 或 xml 的跟节点 View</span></span><br><span class="line">    <span class="type">View</span> <span class="variable">result</span> <span class="operator">=</span> root;</span><br><span class="line">    <span class="comment">//获取标签名称，如 LinearLayout</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> parser.getName();</span><br><span class="line">    <span class="comment">//处理 merge 标签</span></span><br><span class="line">    <span class="keyword">if</span> (TAG_MERGE.equals(name)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">null</span> || !attachToRoot) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InflateException</span>(<span class="string">&quot;&lt;merge /&gt; can be used only with a valid &quot;</span></span><br><span class="line">                    + <span class="string">&quot;ViewGroup root and attachToRoot=true&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//递归实例化 xml 中所有的View</span></span><br><span class="line">        rInflate(parser, root, inflaterContext, attrs, <span class="literal">false</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Temp is the root view that was found in the xml</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">View</span> <span class="variable">temp</span> <span class="operator">=</span> createViewFromTag(root, name, inflaterContext, attrs);</span><br><span class="line"></span><br><span class="line">        ViewGroup.<span class="type">LayoutParams</span> <span class="variable">params</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="comment">//设置布局参数</span></span><br><span class="line">        <span class="keyword">if</span> (root != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// Create layout params that match root, if supplied</span></span><br><span class="line">            params = root.generateLayoutParams(attrs);</span><br><span class="line">            <span class="keyword">if</span> (!attachToRoot) &#123;</span><br><span class="line">                <span class="comment">// Set the layout params for temp if we are not</span></span><br><span class="line">                <span class="comment">// attaching. (If we are, we use addView, below)</span></span><br><span class="line">                temp.setLayoutParams(params);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 实例化根节点 View 下面的所有子 View</span></span><br><span class="line">        <span class="comment">// Inflate all children under temp against its context.</span></span><br><span class="line">        rInflateChildren(parser, temp, attrs, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// We are supposed to attach all the views we found (int temp)</span></span><br><span class="line">        <span class="comment">// to root. Do that now.</span></span><br><span class="line">        <span class="keyword">if</span> (root != <span class="literal">null</span> &amp;&amp; attachToRoot) &#123;</span><br><span class="line">            root.addView(temp, params);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Decide whether to return the root that was passed in or the</span></span><br><span class="line">        <span class="comment">// top view found in xml.</span></span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">null</span> || !attachToRoot) &#123;</span><br><span class="line">            result = temp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 递归处理标签下的子标签</span></span><br><span class="line"><span class="comment">* Recursive method used to descend down the xml hierarchy and instantiate</span></span><br><span class="line"><span class="comment">* views, instantiate their children, and then call onFinishInflate().</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">rInflate</span><span class="params">(XmlPullParser parser...)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (((type = parser.next()) != XmlPullParser.END_TAGZ...) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> parser.getName();</span><br><span class="line">        <span class="keyword">if</span> (TAG_REQUEST_FOCUS.equals(name)) &#123;<span class="comment">//处理 requestFocus 标签</span></span><br><span class="line">            consumeChildElements(parser);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TAG_TAG.equals(name)) &#123;</span><br><span class="line">            <span class="comment">//处理 tag 标签，设置 view.setTag(key, value);</span></span><br><span class="line">            parseViewTag(parser, parent, attrs);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TAG_INCLUDE.equals(name)) &#123;</span><br><span class="line">            parseInclude(parser, context, parent, attrs);<span class="comment">//处理 include 标签</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (TAG_MERGE.equals(name)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InflateException</span>(<span class="string">&quot;&lt;merge /&gt; must be the root element&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> createViewFromTag(parent, name, context, attrs);</span><br><span class="line">            <span class="keyword">final</span> <span class="type">ViewGroup</span> <span class="variable">viewGroup</span> <span class="operator">=</span> (ViewGroup) parent;</span><br><span class="line">            <span class="keyword">final</span> ViewGroup.<span class="type">LayoutParams</span> <span class="variable">params</span> <span class="operator">=</span> viewGroup.generateLayoutParams(attrs);</span><br><span class="line">            rInflateChildren(parser, view, attrs, <span class="literal">true</span>);</span><br><span class="line">            viewGroup.addView(view, params);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//回调 onFinishInflate() 方法</span></span><br><span class="line">    <span class="keyword">if</span> (finishInflate) &#123;</span><br><span class="line">        parent.onFinishInflate();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//根据 xml 标签名称(eg: LinearLayout)创建 View 对象</span></span><br><span class="line">View <span class="title function_">createViewFromTag</span><span class="params">(View parent, String name, Context context, AttributeSet attrs, <span class="type">boolean</span> ignoreThemeAttr)</span> &#123;</span><br><span class="line">    View view;</span><br><span class="line">    <span class="comment">//通过 Factory 创建 View</span></span><br><span class="line">    <span class="keyword">if</span> (mFactory2 != <span class="literal">null</span>) &#123;</span><br><span class="line">        view = mFactory2.onCreateView(parent, name, context, attrs);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mFactory != <span class="literal">null</span>) &#123;</span><br><span class="line">        view = mFactory.onCreateView(name, context, attrs);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        view = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//通过私有工厂创建 View</span></span><br><span class="line">    <span class="keyword">if</span> (view == <span class="literal">null</span> &amp;&amp; mPrivateFactory != <span class="literal">null</span>) &#123;</span><br><span class="line">        view = mPrivateFactory.onCreateView(parent, name, context, attrs);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (-<span class="number">1</span> == name.indexOf(<span class="string">&#x27;.&#x27;</span>)) &#123;<span class="comment">//系统 View，添加前缀 &quot;android.view.&quot;</span></span><br><span class="line">        view = onCreateView(parent, name, attrs);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">//自定义 View，通过完整类名，反射实例化 View</span></span><br><span class="line">        view = createView(name, <span class="literal">null</span>, attrs);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//View 名称和其构造器的 Map 集合</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> HashMap&lt;String, Constructor&lt;? <span class="keyword">extends</span> <span class="title class_">View</span>&gt;&gt; sConstructorMap =</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, Constructor&lt;? <span class="keyword">extends</span> <span class="title class_">View</span>&gt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Low-level function for instantiating a view by name. This attempts to</span></span><br><span class="line"><span class="comment"> * instantiate a view class of the given &lt;var&gt;name&lt;/var&gt; found in this</span></span><br><span class="line"><span class="comment"> * LayoutInflater&#x27;s ClassLoader.</span></span><br><span class="line"><span class="comment"> **/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> View <span class="title function_">createView</span><span class="params">(String name, String prefix, AttributeSet attrs)</span>&#123;</span><br><span class="line">    <span class="comment">//从缓存中获取该 View 的构造器</span></span><br><span class="line">    Constructor&lt;? <span class="keyword">extends</span> <span class="title class_">View</span>&gt; constructor = sConstructorMap.get(name);</span><br><span class="line">    <span class="keyword">if</span> (constructor == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">//通过类加载器加载该类</span></span><br><span class="line">        Class&lt;? <span class="keyword">extends</span> <span class="title class_">View</span>&gt; clazz = mContext.getClassLoader().loadClass(...);</span><br><span class="line">        <span class="comment">//判断是否允许填充此类</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">allowed</span> <span class="operator">=</span> mFilter.onLoadClass(clazz);</span><br><span class="line">        <span class="keyword">if</span> (!allowed) &#123;</span><br><span class="line">            failNotAllowed(name, prefix, attrs);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//获取该类的构造器</span></span><br><span class="line">        constructor = clazz.getConstructor(mConstructorSignature);</span><br><span class="line">        <span class="comment">//保存在缓存中</span></span><br><span class="line">        sConstructorMap.put(name, constructor);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//同上，执行 Filter</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//args 是二维数组，也是自定义 View 时必须重写两个参数的构造方法的原因。</span></span><br><span class="line">    <span class="comment">//否则会抛出 InflateException: Caused by: java.lang.NoSuchMethodException:</span></span><br><span class="line">    <span class="comment">// &lt;init&gt; [class android.content.Context, interface android.util.AttributeSet]</span></span><br><span class="line">    args[<span class="number">1</span>] = attrs;</span><br><span class="line">    <span class="comment">//通过反射创建该 View 的实例</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">View</span> <span class="variable">view</span> <span class="operator">=</span> constructor.newInstance(args);</span><br><span class="line">    <span class="comment">//设置 ViewStub 的 LayoutInflater，在需要时实例化 View</span></span><br><span class="line">    <span class="keyword">if</span> (view <span class="keyword">instanceof</span> ViewStub) &#123;</span><br><span class="line">        <span class="comment">// Use the same context when inflating ViewStub later.</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">ViewStub</span> <span class="variable">viewStub</span> <span class="operator">=</span> (ViewStub) view;</span><br><span class="line">        viewStub.setLayoutInflater(cloneInContext((Context) args[<span class="number">0</span>]));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> view;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-      
     </div>
 
     
@@ -435,284 +255,24 @@
     
 
     <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
+          <div class="post-tags">
+              <a href="/tags/View/" rel="tag"># View</a>
+          </div>
 
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/08/01/Android-%E5%88%86%E6%9E%90%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/08/01/Android-%E5%88%86%E6%9E%90%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" class="post-title-link" itemprop="url">Android 分析内存泄露</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-08-01 17:27:49" itemprop="dateCreated datePublished" datetime="2019-08-01T17:27:49+08:00">2019-08-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>内存泄漏是造成应用程序 OOM 的主要原因之一。Android 系统为每个应用程序分配的内存是有限的，而当一个应用中产生的内存泄漏比较多时，就会导致应用所需要的内存超过系统分配的内存阈值，这就造成了内存溢出从而导致应用 Crash。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/08/01/Android-%E5%88%86%E6%9E%90%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
         
-      
-    </div>
 
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/07/02/Android-Trace/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/07/02/Android-Trace/" class="post-title-link" itemprop="url">Android Trace</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-07-02 16:38:27" itemprop="dateCreated datePublished" datetime="2019-07-02T16:38:27+08:00">2019-07-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>“系统跟踪”就是记录短时间内的设备活动，并生成跟踪文件，该文件记录了系统报告，可以帮助开发者了结应用的性能。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/07/02/Android-Trace/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/08/01/Android-%E5%88%86%E6%9E%90%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" rel="prev" title="Android 分析内存泄露">
+                  <i class="fa fa-chevron-left"></i> Android 分析内存泄露
+                </a>
             </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">MTK 平台 ANR 分析</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2019-06-08 18:23:54" itemprop="dateCreated datePublished" datetime="2019-06-08T18:23:54+08:00">2019-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/ANR/" itemprop="url" rel="index"><span itemprop="name">ANR</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr3.png" alt="Anr"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
+            <div class="post-nav-item">
+                <a href="/2020/03/24/Java-%E5%B9%B6%E5%8F%91%E4%B9%8B%E9%97%AD%E9%94%81-%E6%A0%85%E6%A0%8F-%E4%BF%A1%E5%8F%B7%E9%87%8F-%E4%BA%A4%E6%8D%A2%E5%99%A8/" rel="next" title="Java 并发之闭锁 栅栏 信号量 交换器">
+                  Java 并发之闭锁 栅栏 信号量 交换器 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
+          </div>
     </footer>
   </article>
 </div>
@@ -720,382 +280,7 @@
 
 
 
-    
 
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/09/01/Java-SPI-%E6%9C%BA%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/09/01/Java-SPI-%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">Java SPI 机制</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-09-01 22:44:40" itemprop="dateCreated datePublished" datetime="2018-09-01T22:44:40+08:00">2018-09-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>SPI 全称 Service Provider Interface，是 Java 提供的一套用来被第三方实现或者扩展的 API，它可以用来启用框架扩展和替换组件。简单讲就是为某个接口寻找服务实现的机制。</p>
-<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/java/java-spi.png" alt="java spi"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/09/01/Java-SPI-%E6%9C%BA%E5%88%B6/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/08/16/Android-%E6%9E%B6%E6%9E%84%E6%A8%A1%E5%BC%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/08/16/Android-%E6%9E%B6%E6%9E%84%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">Android 架构模式</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-08-16 20:24:02" itemprop="dateCreated datePublished" datetime="2018-08-16T20:24:02+08:00">2018-08-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Android 开发常用的架构模式有 MVC、MVP 和 MVVM，目的都是为了将业务和视图的实现代码分离，从而使同一个程序可以使用不同的表现形式。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/08/16/Android-%E6%9E%B6%E6%9E%84%E6%A8%A1%E5%BC%8F/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/08/01/Android-RecyclerView/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/08/01/Android-RecyclerView/" class="post-title-link" itemprop="url">Android RecyclerView</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-08-01 22:37:17" itemprop="dateCreated datePublished" datetime="2018-08-01T22:37:17+08:00">2018-08-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/View/" itemprop="url" rel="index"><span itemprop="name">View</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>RecyclerView 是 Android 5.0 提出的新 UI 控件，用来替代 ListView。</p>
-<p>RecyclerView 官方定义如下：</p>
-<blockquote>
-<p>A flexible view for providing a limited window into a large data set.</p>
-</blockquote>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/08/01/Android-RecyclerView/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Vance">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Vance 的博客">
-      <meta itemprop="description" content="问道有先后，如是而已。">
-    </span>
-    
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Vance 的博客">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" class="post-title-link" itemprop="url">Java 注解处理器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2018-07-10 14:51:55" itemprop="dateCreated datePublished" datetime="2018-07-10T14:51:55+08:00">2018-07-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-22 20:28:52" itemprop="dateModified" datetime="2022-03-22T20:28:52+08:00">2022-03-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>APT(Annotation Processing Tool) 即注解处理器，是一种注解处理工具，用来在编译期扫描和处理注解，通过注解来生成 Java 文件。而且只能生成新的源文件而不能修改已经存在的源文件。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-  <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
 
 </div>
   </main>

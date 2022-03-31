@@ -295,7 +295,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-03-31 20:54:34" itemprop="dateModified" datetime="2022-03-31T20:54:34+08:00">2022-03-31</time>
+      <time title="修改时间：2022-03-31 20:57:11" itemprop="dateModified" datetime="2022-03-31T20:57:11+08:00">2022-03-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -318,86 +318,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/jsbridge.png" alt="jsbridge"></p>
-<h2 id="使用-JavascriptInterface-注解的方式"><a href="#使用-JavascriptInterface-注解的方式" class="headerlink" title="使用 @JavascriptInterface 注解的方式"></a>使用 @JavascriptInterface 注解的方式</h2><p>Android 4.2 版本之前的 <code>WebView.addJavascriptInterface()</code> 接口引起的漏洞，可能导致恶意网页通过 Js 方法遍历刚刚通过 addjavascriptInterface 注入进来的类的所有方法从中获取到 getClass 方法，然后通过反射获取到 Runtime 对象，进而调用 Runtime 对象的 exec 方法执行一些操作。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">execute</span>(<span class="params">cmdArgs</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> obj <span class="keyword">in</span> <span class="variable language_">window</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;getClass&quot;</span> <span class="keyword">in</span> <span class="variable language_">window</span>[obj]) &#123;</span><br><span class="line">            <span class="title function_">alert</span>(obj);</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">window</span>[obj]</span><br><span class="line">                .<span class="title function_">getClass</span>()</span><br><span class="line">                .<span class="title function_">forName</span>(<span class="string">&quot;java.lang.Runtime&quot;</span>)</span><br><span class="line">                .<span class="title function_">getMethod</span>(<span class="string">&quot;getRuntime&quot;</span>, <span class="literal">null</span>)</span><br><span class="line">                .<span class="title function_">invoke</span>(<span class="literal">null</span>, <span class="literal">null</span>)</span><br><span class="line">                .<span class="title function_">exec</span>(cmdArgs);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>Native 端代码：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">webSettings.setJavaScriptEnabled(<span class="literal">true</span>);</span><br><span class="line"><span class="comment">//向 H5 注入一个全局对象供 js 调用</span></span><br><span class="line">webView.addJavascriptInterface(<span class="keyword">new</span> <span class="title class_">JsBridge</span>()&#123;</span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">sum</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> a+b;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;, <span class="string">&quot;jsBridge&quot;</span>);</span><br><span class="line"><span class="comment">//调用 js 中的方法</span></span><br><span class="line">webView.loadUrl(<span class="string">&quot;javascript:sayHello()&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>Native 中的方法是供 H5 调用的，不能混淆，不能更改，耦合性高。</li>
-<li>因为 APP 是宿主，可以直接访问 H5，就是在 H5 中曝露一些全局对象（包括方法），然后在原生 app 中调用这些对象。</li>
-</ol>
-<p><strong>H5 代码：</strong></p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">function</span> <span class="title function_">sayHello</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="title function_">alert</span>(<span class="string">&quot;Hello&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">function</span> <span class="title function_">alertMessage</span>(<span class="params">message</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="title function_">alert</span>(message);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">function</span> <span class="title function_">toastMessage</span>(<span class="params">message</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">window</span>.<span class="property">jsBridge</span>.<span class="title function_">toastMessage</span>(message);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">function</span> <span class="title function_">sum</span>(<span class="params">a, b</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">window</span>.<span class="property">jsBridge</span>.<span class="title function_">onSumResult</span>(a + b);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    Java-Javascript Interaction In Android</span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line">//通过 native 注入的对象，调用 native 方法 window.jsBridge.sum(1, 2);</span><br></pre></td></tr></table></figure>
-
-<p>优点：</p>
-<ol>
-<li>官方推荐；</li>
-<li>实现方便简单；</li>
-</ol>
-<p>缺点：</p>
-<ol>
-<li>4.2(api 17) 以下存在安全隐患；</li>
-<li>兼容性差；</li>
-<li>不能混淆，方法名不能更改，耦合性太高；</li>
-</ol>
-<h2 id="自定义路由协议"><a href="#自定义路由协议" class="headerlink" title="自定义路由协议"></a>自定义路由协议</h2><blockquote>
-<p>scheme:&#x2F;&#x2F;host:port&#x2F;path?query</p>
-</blockquote>
-<p>H5 请求消息：<br>jsbridge:&#x2F;&#x2F;app.demo.com:111&#x2F;login?params&#x3D;{“channel”:”h5”}</p>
-<ul>
-<li>jsbridge:&#x2F;&#x2F;app.demo.com 为 JsBridge 标识；</li>
-<li>111 为 H5 请求码，用于区分同一个方法的不同请求。H5 自定义，Native 会原样返回；</li>
-<li>login 为本地方法；</li>
-<li>params 为请求参数，Json 格式。参数可能需要 URL 编码；</li>
-</ul>
-<p>Native 响应消息：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;code&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;message&quot;</span><span class="punctuation">:</span> <span class="string">&quot;success&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;function&quot;</span><span class="punctuation">:</span> <span class="string">&quot;login&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;requestCode&quot;</span><span class="punctuation">:</span> <span class="number">111</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;AAA&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>code 为响应码。0 成功；1 失败。</li>
-<li>message 为响应消息。</li>
-<li>function 为 Native 端处理完成后，将消息返回给 H5 的回调方法。</li>
-<li>requestCode 是 H5 请求码。</li>
-<li>data 字段为具体的业务字段，需提前约定好。</li>
-</ul>
-<p>大致有如下几个步骤：</p>
-<ol>
-<li>约定接口，如 <code>jsbridge://app.demo.com:111/login?params=&#123;&quot;channel&quot;:&quot;h5&quot;&#125;</code>，H5 调用 window.prompt() 传递给 Native；</li>
-<li>Native 在 <code>WebChromeClient#onJsPrompt()</code> 方法中接收到 H5 传递的 Json 字符串；</li>
-<li>Native 解析字符串获取到请求方法，参数等，反射获取类（类名，参数要预先定义好）中的方法。方法处理后生成响应 Json 字符串；</li>
-<li>最后响应字符串通过调用 <code>WebView#evaluateJavascript()</code> 方法参数传递给 H5。</li>
-</ol>
-<p>Js 中对应的 window.alert()、window.confirm()、window.prompt()这三个方法的调用在 WebChromeClient 中都有对应的回调方法，分别为：<br>onJsAlert()、onJsConfirm()、onJsPrompt()，对于它们传入的 message，都可以在相应的回调方法中接收到。所以，对于 Js 调 Native 方法，我们可以借助这个信道，和前端协定好一段特定规则的 message。</p>
-<h2 id="跨平台解决框架"><a href="#跨平台解决框架" class="headerlink" title="跨平台解决框架"></a>跨平台解决框架</h2><h3 id="React-Native"><a href="#React-Native" class="headerlink" title="React Native"></a>React Native</h3><ol>
-<li>Facebook 出品；</li>
-<li>JavaScript 语言；</li>
-<li>JSCore 引擎；</li>
-<li>React 设计模式；</li>
-<li>原生渲染；</li>
-</ol>
-<p><code>React Native 是利用 JS 来调用 Native 端的组件，从而实现相应的功能。</code></p>
-<p>如下图所示，RN 的跨平台实现主要由三层构成，其中 C++ 实现的动态连结库(.so)，作为中间适配层桥接，实现了 js 端与原生端的双向通信交互。这里最主要是封装了 JavaScriptCore 执行 js 的解析，而 react native 运行在 JavaScriptCore 中，所以不存在浏览器兼容的问题。</p>
-<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/rn-arch.png" alt="Alt text"></p>
-<h4 id="Weex"><a href="#Weex" class="headerlink" title="Weex"></a>Weex</h4><ol>
-<li>Alibaba 出品；</li>
-<li>JavaScript 语言；</li>
-<li>JS V8 引擎；</li>
-<li>Vue 设计模式；</li>
-<li>原生渲染。</li>
-</ol>
-<h4 id="Flutter"><a href="#Flutter" class="headerlink" title="Flutter"></a>Flutter</h4><ol>
-<li>Google 出品；</li>
-<li>Dart 语言；</li>
-<li>Flutter Engine 引擎；</li>
-<li>响应式设计模式；</li>
-<li>原生渲染。</li>
-</ol>
-<p>与 react native 和 weex 的通过 Javascript 开发不同，Flutter 的编程语言是 Dart，所以执行时并不需要 Javascript 引擎，但实际效果最终也通过原生渲染。</p>
-<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/flutter-arch.png" alt="Alt text"></p>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://github.com/cxzl/JSBridge/">[1] cxzl&#x2F;JSBridge</a><br><a target="_blank" rel="noopener" href="https://github.com/lzyzsd/JsBridge">[2] lzyzsd&#x2F;JsBridge</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/Liuqz2009/article/details/82352180">[3] Native 与 H5 交互的那些事</a><br><a target="_blank" rel="noopener" href="https://github.com/Sunzxyong/JsBridge">[4] Sunzxyong&#x2F;JsBridge</a><br><a target="_blank" rel="noopener" href="https://github.com/pengwei1024/JsBridge">[5] pengwei1024&#x2F;JsBridge</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/41900859">[6] 最火跨平台 React Native+weex+Flutter</a></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/09/26/Android-Native-%E5%92%8C-H5-%E4%BA%A4%E4%BA%92/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 

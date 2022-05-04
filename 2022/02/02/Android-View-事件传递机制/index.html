@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20View%20%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E4%BD%93%E7%B3%BB.png">
 <meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20View%20%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE.png">
 <meta property="article:published_time" content="2022-02-02T11:50:48.000Z">
-<meta property="article:modified_time" content="2022-04-08T15:45:49.692Z">
+<meta property="article:modified_time" content="2022-05-04T15:37:03.374Z">
 <meta property="article:author" content="Vance">
 <meta property="article:tag" content="Android">
 <meta property="article:tag" content="View">
@@ -213,7 +213,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2022-04-08 23:45:49" itemprop="dateModified" datetime="2022-04-08T23:45:49+08:00">2022-04-08</time>
+      <time title="修改时间：2022-05-04 23:37:03" itemprop="dateModified" datetime="2022-05-04T23:37:03+08:00">2022-05-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -289,9 +289,9 @@
 <ol>
 <li>事件从 <code>Activity#dispatchTouchEvent()</code> 开始传递，再传递给 DecorView；</li>
 <li>DecorView 中先执行 <code>dispatchTouchEvent()</code> 方法，在其内部会先调用 <code>onInterceptTouchEvent()</code> 询问是否拦截事件，若拦截则执行 <code>onTouchEvent()</code> 方法处理这个事件；</li>
-<li>若不拦截，则执行子元素的 dispatchTouchEvent() 方法，进入向下分发的传递，直到事件被处理；</li>
-<li>如果事件从外向内传递过程中一直没有被拦截，且最底层子 View 没有消费事件，这时父 View 可以进行消费，如果还是没有被消费的话，最后会到 Activity#onTouchEvent() 函数。</li>
-<li>如果 View 没有对 ACTION_DOWN 进行消费，之后的其他类型的事件也不会传递过来，也就是说 ACTION_DOWN 必须返回 true，之后的事件才会传递进来。</li>
+<li>若不拦截，则执行子 View 的 dispatchTouchEvent() 方法，进入向下分发的传递，直到事件被处理；</li>
+<li>如果事件从外向内传递过程中一直没有被拦截，且最底层子 View 没有消费事件，则事件会反向向上传递。这时父 View 可以进行消费，如果还是没有被消费，最后会传递到 Activity#onTouchEvent() 方法；</li>
+<li>如果 View 没有对 ACTION_DOWN 进行消费，之后的其它类型的事件也不会传递过来，也就是说 ACTION_DOWN 必须返回 true，之后的事件才会传递进来。</li>
 <li>事件处理优先级是<br><code>OnTouhListener#onTouch(View v, MotionEvent event) -&gt; onTouchEvent() -&gt; OnClickListener#onClick(View v)</code>。</li>
 </ol>
 <p>三个方法的关系如下：</p>
@@ -325,8 +325,8 @@
 
 <ol>
 <li>默认返回 false，不拦截事件。</li>
-<li>ViewGroup 子类可以重新该方法，决定是否拦截事件。</li>
-<li>子 View 通过 <code>parentView.requestDisallowInterceptTouchEvent(true)</code> 强制父 View 不拦截此事件。</li>
+<li>ViewGroup 子类可以重写该方法，决定是否拦截事件。</li>
+<li>子 View 通过 <code>parentView.requestDisallowInterceptTouchEvent(true)</code> 请求父 View 不拦截此事件。</li>
 </ol>
 <h3 id="View-的事件处理"><a href="#View-的事件处理" class="headerlink" title="View 的事件处理"></a>View 的事件处理</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// View.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">dispatchTouchEvent</span><span class="params">(MotionEvent event)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (event.isTargetAccessibilityFocus()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!isAccessibilityFocusedViewOrHost()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        event.setTargetAccessibilityFocus(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 停止嵌套滑动</span></span><br><span class="line">    <span class="keyword">if</span> (actionMasked == MotionEvent.ACTION_DOWN) &#123;</span><br><span class="line">        stopNestedScroll();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((mViewFlags &amp; ENABLED_MASK) == ENABLED &amp;&amp; handleScrollBarDragging(event)) &#123;</span><br><span class="line">        result = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果 View 可用并设置了 OnTouchListener，如果回调方法 onTouch() 返回 true 则消费事件</span></span><br><span class="line">    <span class="comment">// 并且不会调用 onTouchEvent() 方法</span></span><br><span class="line">    <span class="type">ListenerInfo</span> <span class="variable">li</span> <span class="operator">=</span> mListenerInfo;</span><br><span class="line">    <span class="keyword">if</span> (li != <span class="literal">null</span> &amp;&amp; li.mOnTouchListener != <span class="literal">null</span></span><br><span class="line">            &amp;&amp; (mViewFlags &amp; ENABLED_MASK) == ENABLED</span><br><span class="line">            &amp;&amp; li.mOnTouchListener.onTouch(<span class="built_in">this</span>, event)) &#123;</span><br><span class="line">        result = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!result &amp;&amp; onTouchEvent(event)) &#123;</span><br><span class="line">        result = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -351,20 +351,20 @@
 <li>ACTION_CANCEL 事件怎么产生，作用是什么？<br>如果子 View 处理了 ACTION_DOWN 事件，那么正常情况下后面的 ACTION_MOVE 和 ACTION_UP 事件也会交给它处理。但是交给它处理之前，父 View 还是可以拦截事件的，如果拦截了事件，系统会生成 ACTION_CANCEL 事件给子 View，并且不会收到后续的事件，用于重置状态。</li>
 </ol>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
-<li>一个点击事件产生后，它的传递过程如下：<br>Activity-&gt;Window-&gt;DecorView-&gt;View。如果一个 View 的 onTouchEvent 方法返回 false，那么将会交给父容器的 onTouchEvent 方法进行处理，逐级往上，如果所有的 View 都不处理该事件，则交由 Activity 的 onTouchEvent 进行处理。</li>
+<li>一个点击事件是从 Activity-&gt;Window-&gt;DecorView-&gt;若干 ViewGroup-&gt;View，传递过程如下：<br><code>Activity#dispatchTouchEvent() -&gt; DecorView#dispatchTouchEvent() -&gt; View#OnTouchListener.onTouch() -&gt; View#onTouchEvent() -&gt; View#OnClickListener.onClick()</code>；</li>
+<li>如果一个 View 的 onTouchEvent 方法返回 false，那么将会交给父容器的 onTouchEvent 方法进行处理，逐级往上，如果所有的 View 都不处理该事件，则交由 Activity#onTouchEvent() 处理。</li>
 <li>ViewGroup 默认不拦截任何事件，可以通过重写 onInterceptTouchEvent() 方法拦截事件，执行自己对应的 onTouchEvent() 方法。</li>
-<li>子 View 可以通过调用父 View 的 requestDisallowInterceptTouchEvent(true) 阻止 ViewGroup 对事件进行拦截；</li>
-<li>如果 ViewGroup 找到了能够处理该事件的 View（TouchTarget），则直接交给子 View 处理，自己的 onTouchEvent() 方法不会执行；</li>
+<li>子 View 可以通过调用父 View 的 requestDisallowInterceptTouchEvent(true) 请求 ViewGroup 把事件交给子 View 处理；</li>
+<li>如果 ViewGroup 找到了能够处理该事件的 View（TouchTarget），默认情况后续的事件也会直接交给子 View 处理；</li>
 <li>如果某一个 View 不消耗 ACTION_DOWN 事件，则同一事件序列中不会再交给该 View 处理；</li>
 <li>非容器的 View，一旦接收到事件默认都会消耗事件，除非它是不可点击的（clickable 和 longClickable 都为 false），那么就会由父容器的 onTouchEvent() 处理；</li>
 <li>View 的 visible 属性对事件传递没有影响；</li>
-<li>点击事件分发过程是 <code>Activity#dispatchTouchEvent() -&gt; DecorView#dispatchTouchEvent() -&gt; View#OnTouchListener.onTouch() -&gt; View#onTouchEvent() -&gt; View#OnClickListener.onClick()</code>；</li>
 <li>如果当前 View 是可点击的，并且它收到了 down 和 up 事件，则它的 click 事件就会触发；对于 onLongClick，则只要当前 View 接收到 down 事件超过了系统默认的时间；</li>
-<li>当某个子 View 消费事件时，会中止 Down 事件的分发，同时在 ViewGroup 中记录该子 View。接下去的 Move 和 Up 事件将由该子 View 直接进行处理。</li>
+<li>当某个子 View 消费事件时，会中止 Down 事件的分发，同时在 ViewGroup 中记录该子 View。同一序列中的 Move 和 Up 事件将由该子 View 直接进行处理。</li>
 <li>当子 View 都不消费 Down 事件时，将调用 ViewGroup#onTouchEvent() 方法。触发的方式是调用 super.dispatchTouchEvent() 函数，即父类 View#dispatchTouchEvent 方法。如果所有子 View 都不处理，则调用 Acitivity#onTouchEvent() 方法。</li>
 <li>如果 View 没有对 ACTION_DOWN 进行消费，那后续事件不会传递过来。如果 View 消费了 ACTION_DOWN，在不拦截的情况下，后续事件会直接传递给这个 View；</li>
-<li>接收了 ACTION_DOWN 事件的函数不一定能收到后续的 ACTION_MOVE 和 ACTION_UP 事件。</li>
-<li><code>如果当前正在处理的事件被上层 View 拦截，会收到一个 ACTION_CANCEL，后续事件不会再传递过来。</code></li>
+<li>接收了 ACTION_DOWN 事件的函数不一定能收到后续的 ACTION_MOVE 和 ACTION_UP 事件，有可能事件被父 View 拦截了。</li>
+<li><code>如果当前正在处理的事件被父 View 拦截，子 View 会收到一个 ACTION_CANCEL 事件，并从 TouchTarget 链中移除，所以后续事件不会再传递过来。</code></li>
 <li>子 View 重叠并都是可点击时，最后添加的 View，即离用户最近的 View 最先消费事件。</li>
 </ol>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903926446161927">[1] Android 事件分发机制的设计与实现</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904128397705230">[2] Android 事件拦截机制的设计与实现</a></p>

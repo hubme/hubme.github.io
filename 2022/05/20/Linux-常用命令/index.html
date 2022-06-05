@@ -28,7 +28,7 @@
 <meta property="og:description" content="收集一些常用的 Linux 命令，方便查找。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-20T15:40:17.000Z">
-<meta property="article:modified_time" content="2022-05-20T15:43:44.873Z">
+<meta property="article:modified_time" content="2022-06-05T15:48:05.947Z">
 <meta property="article:author" content="Vance">
 <meta name="twitter:card" content="summary">
 
@@ -108,7 +108,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E6%96%87%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">查找文本命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Grep"><span class="nav-number">1.1.</span> <span class="nav-text">Grep</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ack-grep"><span class="nav-number">2.</span> <span class="nav-text">ack-grep</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ag"><span class="nav-number">2.1.</span> <span class="nav-text">ag</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fzf"><span class="nav-number">2.2.</span> <span class="nav-text">fzf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ripgrep"><span class="nav-number">2.3.</span> <span class="nav-text">ripgrep</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%AF%BC%E8%88%AA%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">文件导航命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pwd"><span class="nav-number">2.</span> <span class="nav-text">pwd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cd"><span class="nav-number">3.</span> <span class="nav-text">cd</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ls"><span class="nav-number">3.1.</span> <span class="nav-text">ls</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E6%96%87%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">4.</span> <span class="nav-text">查找文本命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Grep"><span class="nav-number">4.1.</span> <span class="nav-text">Grep</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ack-grep"><span class="nav-number">5.</span> <span class="nav-text">ack-grep</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ag"><span class="nav-number">5.1.</span> <span class="nav-text">ag</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fzf"><span class="nav-number">5.2.</span> <span class="nav-text">fzf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ripgrep"><span class="nav-number">5.3.</span> <span class="nav-text">ripgrep</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -199,9 +199,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-05-20 23:40:17 / 修改时间：23:43:44" itemprop="dateCreated datePublished" datetime="2022-05-20T23:40:17+08:00">2022-05-20</time>
+      <time title="创建时间：2022-05-20 23:40:17" itemprop="dateCreated datePublished" datetime="2022-05-20T23:40:17+08:00">2022-05-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-06-05 23:48:05" itemprop="dateModified" datetime="2022-06-05T23:48:05+08:00">2022-06-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -226,7 +232,22 @@
         <p>收集一些常用的 Linux 命令，方便查找。</p>
 <span id="more"></span>
 
-<h2 id="查找文本命令"><a href="#查找文本命令" class="headerlink" title="查找文本命令"></a>查找文本命令</h2><h3 id="Grep"><a href="#Grep" class="headerlink" title="Grep"></a>Grep</h3><p>pc% grep –help<br>用法: grep [选项]… 模式 [文件]…<br>在每个&lt;文件&gt;中查找给定&lt;模式&gt;。<br>例如：grep -i ‘hello world’ menu.h main.c</p>
+<h2 id="文件导航命令"><a href="#文件导航命令" class="headerlink" title="文件导航命令"></a>文件导航命令</h2><h2 id="pwd"><a href="#pwd" class="headerlink" title="pwd"></a>pwd</h2><p>打印当前工作目录的名字。</p>
+<h2 id="cd"><a href="#cd" class="headerlink" title="cd"></a>cd</h2><ul>
+<li><strong>cd [~]</strong>: 当前用户的主目录</li>
+<li><strong>cd ..</strong>: 父目录</li>
+<li><strong>cd -（破折号）</strong>: 之前所在的目录</li>
+</ul>
+<h3 id="ls"><a href="#ls" class="headerlink" title="ls"></a>ls</h3><p>用法：ls [选项]… [文件]…<br>列出 &lt;文件&gt;（默认为当前目录）的信息。<br>如果既没有指定 -cftuvSUX 中任何一个，也没有指定 –sort，则按字母排序项目。</p>
+<p>选项：</p>
+<ol>
+<li>-a 不要隐藏以 . 开头的项目</li>
+<li>-l 使用长列表格式</li>
+<li>-F 显示文件类型。<code>/</code> 表示这是一个目录；<code>*</code> 表示可执行文件；<code>@</code> 表示链接</li>
+<li>-h 同时使用 -l 或 -s 时，将大小表示为 1K 234M 2G 等</li>
+<li>-t 按时间排序，最新的最前</li>
+</ol>
+<h2 id="查找文本命令"><a href="#查找文本命令" class="headerlink" title="查找文本命令"></a>查找文本命令</h2><h3 id="Grep"><a href="#Grep" class="headerlink" title="Grep"></a>Grep</h3><p>用法: grep [选项]… 模式 [文件]…<br>在每个&lt;文件&gt;中查找给定&lt;模式&gt;。<br>例如：grep -i ‘hello world’ menu.h main.c</p>
 <p>模式选择与解释：</p>
 <ul>
 <li>-i, –ignore-case 在模式和数据中忽略大小写<br>–no-ignore-case 不要忽略大小写（默认）</li>
@@ -260,7 +281,7 @@
 <li>Pacman: sudo pacman -S fzf</li>
 </ol>
 <p><a target="_blank" rel="noopener" href="https://github.com/junegunn/fzf">fzf - github</a></p>
-<h3 id="ripgrep"><a href="#ripgrep" class="headerlink" title="ripgrep"></a>ripgrep</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://einverne.github.io/post/2019/08/fzf-usage.html">每天学习一个命令：fzf 使用笔记</a></p>
+<h3 id="ripgrep"><a href="#ripgrep" class="headerlink" title="ripgrep"></a>ripgrep</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://einverne.github.io/post/2019/08/fzf-usage.html">[1] 每天学习一个命令：fzf 使用笔记</a><br><a target="_blank" rel="noopener" href="https://www.yuanmadesign.com/shell1/">[2] 导航文件和目录</a></p>
 
     </div>
 

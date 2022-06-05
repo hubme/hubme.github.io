@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面系统级程序，用户可以用 Shell 来启动、挂起、停止甚至编写一些程序。">
+    <meta name="description" content="Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面系统级程序，其主要目的是读取命令和运行其他程序。 最流行的 shell 是 Bash（Bourne Again SHell — 之所以这么称呼，是因为它源自 Stephen Bourne 编写的 shell）。 Bash 是大多数现代 Linux 实现和大多数提供 适用于 Windows 的类 Linu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Shell 脚本">
 <meta property="og:url" content="http://example.com/2022/06/03/Shell-%E8%84%9A%E6%9C%AC/index.html">
 <meta property="og:site_name" content="Vance 的博客">
-<meta property="og:description" content="Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面系统级程序，用户可以用 Shell 来启动、挂起、停止甚至编写一些程序。">
+<meta property="og:description" content="Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面系统级程序，其主要目的是读取命令和运行其他程序。 最流行的 shell 是 Bash（Bourne Again SHell — 之所以这么称呼，是因为它源自 Stephen Bourne 编写的 shell）。 Bash 是大多数现代 Linux 实现和大多数提供 适用于 Windows 的类 Linu">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-06-03T14:21:20.000Z">
-<meta property="article:modified_time" content="2022-06-03T14:23:22.563Z">
+<meta property="article:modified_time" content="2022-06-05T15:50:29.999Z">
 <meta property="article:author" content="Vance">
 <meta name="twitter:card" content="summary">
 
@@ -199,9 +199,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-06-03 22:21:20 / 修改时间：22:23:22" itemprop="dateCreated datePublished" datetime="2022-06-03T22:21:20+08:00">2022-06-03</time>
+      <time title="创建时间：2022-06-03 22:21:20" itemprop="dateCreated datePublished" datetime="2022-06-03T22:21:20+08:00">2022-06-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-06-05 23:50:29" itemprop="dateModified" datetime="2022-06-05T23:50:29+08:00">2022-06-05</time>
     </span>
 
   
@@ -214,7 +220,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <p>Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的界面系统级程序，用户可以用 Shell 来启动、挂起、停止甚至编写一些程序。</p>
+        <p>Shell 是一个命令行解释器，它为用户提供了一个向 Linux 内核发送请求以便运行程序的<code>界面系统级程序</code>，其主要目的是读取命令和运行其他程序。</p>
+<p>最流行的 shell 是 Bash（Bourne Again SHell — 之所以这么称呼，是因为它源自 Stephen Bourne 编写的 shell）。 Bash 是大多数现代 Linux 实现和大多数提供 适用于 Windows 的类 Linux 工具。</p>
 <span id="more"></span>
 
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">cd</span> ~</span><br><span class="line"><span class="built_in">mkdir</span> shell_tut</span><br><span class="line"><span class="built_in">cd</span> shell_tut</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ((i=0; i&lt;10; i++)); <span class="keyword">do</span></span><br><span class="line">    <span class="built_in">touch</span> test_<span class="variable">$i</span>.txt</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
@@ -358,7 +365,7 @@
 </ol>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hello=<span class="string">&quot;hello&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$&#123;hello:1:3&#125;</span> <span class="comment">#output: ell</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://github.com/qinjx/30min_guides/blob/master/shell.md">[1] Shell 脚本编程 30 分钟入门</a><br><a target="_blank" rel="noopener" href="http://tldp.org/LDP/abs/html/index.html">[2] Advanced Bash-Scripting Guide</a><br><a target="_blank" rel="noopener" href="http://www.tutorialspoint.com/unix/unix-shell.htm">[3] Unix Shell Programming</a><br><a target="_blank" rel="noopener" href="https://bash.cyberciti.biz/guide/Main_Page">[4 ]Linux Shell Scripting Tutorial - A Beginner’s handbook</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://github.com/qinjx/30min_guides/blob/master/shell.md">[1] Shell 脚本编程 30 分钟入门</a><br><a target="_blank" rel="noopener" href="http://tldp.org/LDP/abs/html/index.html">[2] Advanced Bash-Scripting Guide</a><br><a target="_blank" rel="noopener" href="http://www.tutorialspoint.com/unix/unix-shell.htm">[3] Unix Shell Programming</a><br><a target="_blank" rel="noopener" href="https://bash.cyberciti.biz/guide/Main_Page">[4 ]Linux Shell Scripting Tutorial - A Beginner’s handbook</a><br><a target="_blank" rel="noopener" href="https://www.yuanmadesign.com/shell1/01-intro/index.html">[5] Linux Shell</a></p>
 
     </div>
 

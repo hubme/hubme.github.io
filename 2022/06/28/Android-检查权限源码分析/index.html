@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta property="og:type" content="article">
+<meta property="og:title" content="Android 检查权限源码分析">
+<meta property="og:url" content="http://example.com/2022/06/28/Android-%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-permission-check.png">
+<meta property="article:published_time" content="2022-06-28T14:42:34.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Frameworks">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-permission-check.png">
+
+
+<link rel="canonical" href="http://example.com/2022/06/28/Android-%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/06/28/Android-%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/","path":"2022/06/28/Android-检查权限源码分析/","title":"Android 检查权限源码分析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android 检查权限源码分析 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/28/Android-%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android 检查权限源码分析 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android 检查权限源码分析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-06-28 22:42:34" itemprop="dateCreated datePublished" datetime="2022-06-28T22:42:34+08:00">2022-06-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-permission-check.png" alt="检查权限时序图"></p>
+<span id="more"></span>
+
+<p>检查权限一般使用 androidx 包下的 ContextCompat#checkSelfPermission() 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> androidx.core.content;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ContextCompat</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Determine whether &lt;em&gt;you&lt;/em&gt; have been granted a particular permission.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> permission The name of the permission being checked.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> PackageManager#PERMISSION_GRANTED&#125; if you have the</span></span><br><span class="line"><span class="comment">     * permission, or &#123;<span class="doctag">@link</span> PackageManager#PERMISSION_DENIED&#125; if not.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> PackageManager#checkPermission(String, String)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">checkSelfPermission</span><span class="params">(<span class="meta">@NonNull</span> Context context, <span class="meta">@NonNull</span> String permission)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (permission == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;permission is null&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> context.checkPermission(permission, Process.myPid(), Process.myUid());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>源码基于 sdk-31（Android 12&#x2F;S）</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ContextImpl.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">checkPermission</span><span class="params">(String permission, <span class="type">int</span> pid, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (permission == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;permission is null&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mParams.isRenouncedPermission(permission)</span><br><span class="line">            &amp;&amp; pid == android.os.Process.myPid() &amp;&amp; uid == android.os.Process.myUid()) &#123;</span><br><span class="line">        Log.v(TAG, <span class="string">&quot;Treating renounced permission &quot;</span> + permission + <span class="string">&quot; as denied&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> PERMISSION_DENIED;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> PermissionManager.checkPermission(permission, pid, uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>如果权限是否在废弃列表中，拒绝权限；</li>
+<li>调用 PermissionManager 检查权限；</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SystemApi</span></span><br><span class="line"><span class="meta">@SystemService(Context.PERMISSION_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">PermissionManager</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> PropertyInvalidatedCache&lt;PermissionQuery, Integer&gt; sPermissionCache =</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">PropertyInvalidatedCache</span>&lt;PermissionQuery, Integer&gt;(</span><br><span class="line">                    <span class="number">2048</span>, CACHE_KEY_PACKAGE_INFO, <span class="string">&quot;checkPermission&quot;</span>) &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">protected</span> Integer <span class="title function_">recompute</span><span class="params">(PermissionQuery query)</span> &#123;</span><br><span class="line">                    <span class="keyword">return</span> checkPermissionUncached(query.permission, query.pid, query.uid);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** <span class="doctag">@hide</span> */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">checkPermission</span><span class="params">(String permission, <span class="type">int</span> pid, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> sPermissionCache.query(<span class="keyword">new</span> <span class="title class_">PermissionQuery</span>(permission, pid, uid));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">checkPermissionUncached</span><span class="params">(String permission, <span class="type">int</span> pid, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">IActivityManager</span> <span class="variable">am</span> <span class="operator">=</span> ActivityManager.getService();</span><br><span class="line">        <span class="keyword">return</span> am.checkPermission(permission, pid, uid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>使用 PropertyInvalidatedCache 保存权限缓存；</li>
+<li>如果没有命中缓存，通过 AMS 检查权限。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ActivityManagerService</span> <span class="keyword">extends</span> <span class="title class_">IActivityManager</span>.Stub &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">checkPermission</span><span class="params">(String permission, <span class="type">int</span> pid, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (permission == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        <span class="keyword">return</span> checkComponentPermission(permission, pid, uid, -<span class="number">1</span>, <span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">checkComponentPermission</span><span class="params">(String permission, <span class="type">int</span> pid, <span class="type">int</span> uid,</span></span><br><span class="line"><span class="params">            <span class="type">int</span> owningUid, <span class="type">boolean</span> exported)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (pid == MY_PID) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> ActivityManager.checkComponentPermission(permission, uid,</span><br><span class="line">                owningUid, exported);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>调用了 ActivityManager#checkComponentPermission() 方法，并设置 owningUid &#x3D; -1，exported &#x3D; true；</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SystemService(Context.ACTIVITY_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ActivityManager</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">checkComponentPermission</span><span class="params">(String permission, <span class="type">int</span> uid,</span></span><br><span class="line"><span class="params">            <span class="type">int</span> owningUid, <span class="type">boolean</span> exported)</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">appId</span> <span class="operator">=</span> UserHandle.getAppId(uid);</span><br><span class="line">        <span class="keyword">if</span> (appId == Process.ROOT_UID || appId == Process.SYSTEM_UID) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Isolated processes don&#x27;t get any permissions.</span></span><br><span class="line">        <span class="keyword">if</span> (UserHandle.isIsolated(uid)) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// If there is a uid that owns whatever is being accessed, it has</span></span><br><span class="line">        <span class="comment">// blanket access to it regardless of the permissions it requires.</span></span><br><span class="line">        <span class="keyword">if</span> (owningUid &gt;= <span class="number">0</span> &amp;&amp; UserHandle.isSameApp(uid, owningUid)) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// If the target is not exported, then nobody else can get to it.</span></span><br><span class="line">        <span class="keyword">if</span> (!exported) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (permission == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> AppGlobals.getPackageManager()</span><br><span class="line">                .checkUidPermission(permission, uid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>如果是 Root、System 或同一进程返回 PERMISSION_GRANTED；</li>
+<li>孤立进程、权限为空和不允许导出返回 PERMISSION_DENIED；</li>
+<li>最后通过 PMS 检查权限。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PackageManagerService</span> <span class="keyword">extends</span> <span class="title class_">IPackageManager</span>.Stub &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> PermissionManagerServiceInternal mPermissionManager;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">checkUidPermission</span><span class="params">(String permName, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> mComputer.checkUidPermission(permName, uid);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">ComputerEngine</span> <span class="keyword">implements</span> <span class="title class_">Computer</span> &#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">final</span> <span class="type">int</span> <span class="title function_">checkUidPermission</span><span class="params">(String permName, <span class="type">int</span> uid)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> mPermissionManager.checkUidPermission(uid, permName);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>又通过 PermissionManagerService 检查权限；</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PermissionManagerService</span> <span class="keyword">extends</span> <span class="title class_">IPermissionManager</span>.Stub &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">class</span> <span class="title class_">PermissionManagerServiceInternalImpl</span> <span class="keyword">implements</span> <span class="title class_">PermissionManagerServiceInternal</span> &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">checkUidPermission</span><span class="params">(<span class="type">int</span> uid, <span class="meta">@NonNull</span> String permissionName)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> PermissionManagerService.<span class="built_in">this</span>.checkUidPermission(uid, permissionName);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">checkUidPermission</span><span class="params">(<span class="type">int</span> uid, String permName)</span> &#123;</span><br><span class="line">        <span class="comment">// Not using Objects.requireNonNull() here for compatibility reasons.</span></span><br><span class="line">        <span class="keyword">if</span> (permName == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">userId</span> <span class="operator">=</span> UserHandle.getUserId(uid);</span><br><span class="line">        <span class="keyword">if</span> (!mUserManagerInt.exists(userId)) &#123;</span><br><span class="line">            <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> CheckPermissionDelegate checkPermissionDelegate;</span><br><span class="line">        <span class="keyword">synchronized</span> (mLock) &#123;</span><br><span class="line">            checkPermissionDelegate = mCheckPermissionDelegate;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (checkPermissionDelegate == <span class="literal">null</span>)  &#123;</span><br><span class="line">            <span class="keyword">return</span> checkUidPermissionImpl(uid, permName);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> checkPermissionDelegate.checkUidPermission(uid, permName,</span><br><span class="line">                <span class="built_in">this</span>::checkUidPermissionImpl);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">checkUidPermissionInternal</span><span class="params">(<span class="meta">@Nullable</span> AndroidPackage pkg, <span class="type">int</span> uid,</span></span><br><span class="line"><span class="params">            <span class="meta">@NonNull</span> String permissionName)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (pkg != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">userId</span> <span class="operator">=</span> UserHandle.getUserId(uid);</span><br><span class="line">            <span class="keyword">return</span> checkPermissionInternal(pkg, <span class="literal">false</span>, permissionName, userId);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">checkPermissionInternal</span><span class="params">(<span class="meta">@NonNull</span> AndroidPackage pkg, <span class="type">boolean</span> isPackageExplicit,</span></span><br><span class="line"><span class="params">            <span class="meta">@NonNull</span> String permissionName, <span class="meta">@UserIdInt</span> <span class="type">int</span> userId)</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">callingUid</span> <span class="operator">=</span> getCallingUid();</span><br><span class="line">        <span class="keyword">if</span> (isPackageExplicit || pkg.getSharedUserId() == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mPackageManagerInt.filterAppAccess(pkg, callingUid, userId)) &#123;</span><br><span class="line">                <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (mPackageManagerInt.getInstantAppPackageName(callingUid) != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">uid</span> <span class="operator">=</span> UserHandle.getUid(userId, pkg.getUid());</span><br><span class="line">        <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">isInstantApp</span> <span class="operator">=</span> mPackageManagerInt.getInstantAppPackageName(uid) != <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">synchronized</span> (mLock) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">UidPermissionState</span> <span class="variable">uidState</span> <span class="operator">=</span> getUidStateLocked(pkg, userId);</span><br><span class="line">            <span class="keyword">if</span> (uidState == <span class="literal">null</span>) &#123;</span><br><span class="line">                Slog.e(TAG, <span class="string">&quot;Missing permissions state for &quot;</span> + pkg.getPackageName() + <span class="string">&quot; and user &quot;</span></span><br><span class="line">                        + userId);</span><br><span class="line">                <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (checkSinglePermissionInternalLocked(uidState, permissionName, isInstantApp)) &#123;</span><br><span class="line">                <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">final</span> <span class="type">String</span> <span class="variable">fullerPermissionName</span> <span class="operator">=</span> FULLER_PERMISSION_MAP.get(permissionName);</span><br><span class="line">            <span class="keyword">if</span> (fullerPermissionName != <span class="literal">null</span> &amp;&amp; checkSinglePermissionInternalLocked(uidState,</span><br><span class="line">                    fullerPermissionName, isInstantApp)) &#123;</span><br><span class="line">                <span class="keyword">return</span> PackageManager.PERMISSION_GRANTED;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> PackageManager.PERMISSION_DENIED;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">checkSinglePermissionInternalLocked</span><span class="params">(<span class="meta">@NonNull</span> UidPermissionState uidState,</span></span><br><span class="line"><span class="params">            <span class="meta">@NonNull</span> String permissionName, <span class="type">boolean</span> isInstantApp)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!uidState.isPermissionGranted(permissionName)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isInstantApp) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">Permission</span> <span class="variable">permission</span> <span class="operator">=</span> mRegistry.getPermission(permissionName);</span><br><span class="line">            <span class="keyword">return</span> permission != <span class="literal">null</span> &amp;&amp; permission.isInstant();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>最后权限是通过 UidPermissionState 来判断；</li>
+<li>PERMISSION_GRANTED &#x3D; 0，PERMISSION_DENIED &#x3D; -1；</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Permission state for a UID.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">UidPermissionState</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isPermissionGranted</span><span class="params">(<span class="meta">@NonNull</span> String name)</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">PermissionState</span> <span class="variable">permissionState</span> <span class="operator">=</span> getPermissionState(name);</span><br><span class="line">        <span class="keyword">return</span> permissionState != <span class="literal">null</span> &amp;&amp; permissionState.isGranted();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Frameworks/" rel="tag"># Frameworks</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/06/14/PMS-%E5%AE%89%E8%A3%85-Apk-%E6%B5%81%E7%A8%8B/" rel="prev" title="PMS 安装 Apk 流程">
+                  <i class="fa fa-chevron-left"></i> PMS 安装 Apk 流程
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/08/29/Android-PMS-%E5%AE%89%E8%A3%85-APK-%E6%B5%81%E7%A8%8B/" rel="next" title="Android PMS 安装 APK 流程">
+                  Android PMS 安装 APK 流程 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

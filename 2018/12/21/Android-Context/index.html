@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Android 是基于组件的应用设计模式，组件的运行要有一个完整的 Android 工程环境。在这个环境下，Activity、Service 等系统组件才能够正常工作，而这些组件并不能采用普通的 Java 对象创建方式，而是要有它们各自的上下文环境。Context 是维持 Android 程序中各组件能够正常工作的一个核心功能类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Context">
+<meta property="og:url" content="http://example.com/2018/12/21/Android-Context/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="Android 是基于组件的应用设计模式，组件的运行要有一个完整的 Android 工程环境。在这个环境下，Activity、Service 等系统组件才能够正常工作，而这些组件并不能采用普通的 Java 对象创建方式，而是要有它们各自的上下文环境。Context 是维持 Android 程序中各组件能够正常工作的一个核心功能类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20Uml.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20%E4%BD%9C%E7%94%A8%E5%9F%9F.png">
+<meta property="article:published_time" content="2018-12-21T09:28:51.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.115Z">
+<meta property="article:author" content="Vance">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
+
+
+<link rel="canonical" href="http://example.com/2018/12/21/Android-Context/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2018/12/21/Android-Context/","path":"2018/12/21/Android-Context/","title":"Android Context"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android Context | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-%E5%88%86%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">Context 分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity-%E7%9A%84-Context"><span class="nav-number">2.</span> <span class="nav-text">Activity 的 Context</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-%E7%9A%84-Context"><span class="nav-number">3.</span> <span class="nav-text">Service 的 Context</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ContextProvider-%E7%9A%84-Context"><span class="nav-number">4.</span> <span class="nav-text">ContextProvider 的 Context</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BroadcastReceiver-%E7%9A%84-Context"><span class="nav-number">5.</span> <span class="nav-text">BroadcastReceiver 的 Context</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-%E4%BD%9C%E7%94%A8%E5%9F%9F"><span class="nav-number">6.</span> <span class="nav-text">Context 作用域</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96-Context"><span class="nav-number">7.</span> <span class="nav-text">获取 Context</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96-Application"><span class="nav-number">8.</span> <span class="nav-text">获取 Application</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/21/Android-Context/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android Context | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android Context
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-12-21 17:28:51" itemprop="dateCreated datePublished" datetime="2018-12-21T17:28:51+08:00">2018-12-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Android 是基于组件的应用设计模式，组件的运行要有一个完整的 Android 工程环境。在这个环境下，Activity、Service 等系统组件才能够正常工作，而这些组件并不能采用普通的 Java 对象创建方式，而是要有它们各自的上下文环境。<code>Context 是维持 Android 程序中各组件能够正常工作的一个核心功能类。</code></p>
+<span id="more"></span>
+
+<blockquote>
+<p>源码基于 sdk-30&#x2F;R&#x2F;11.0</p>
+</blockquote>
+<h2 id="Context-分类"><a href="#Context-分类" class="headerlink" title="Context 分类"></a>Context 分类</h2><p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png" alt="Context 继承关系"><br><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20Uml.png" alt="Context Uml"></p>
+<ul>
+<li><strong>Context:</strong> Context 是一个抽象类，表示应用运行的基本环境。</li>
+<li><strong>ContextImpl:</strong> Context 的公用实现类。</li>
+<li><strong>ContextWrapper:</strong> 对 Context 的包装类，是 Context 的代理类。</li>
+<li><strong>ContextThemeWrapper:</strong> 提供主题相关的功能。唯一实现类是 Activity。</li>
+<li><strong>Application:</strong> 表示一个应用程序，单例对象，是应用最先启动的组件。提供全局上下文。</li>
+<li><strong>Service:</strong> 服务组件。</li>
+</ul>
+<p>Context 类定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface to global information about an application environment.  This is</span></span><br><span class="line"><span class="comment"> * an abstract class whose implementation is provided by</span></span><br><span class="line"><span class="comment"> * the Android system.  It</span></span><br><span class="line"><span class="comment"> * allows access to application-specific resources and classes, as well as</span></span><br><span class="line"><span class="comment"> * up-calls for application-level operations such as launching activities,</span></span><br><span class="line"><span class="comment"> * broadcasting and receiving intents, etc.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Context</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> Context <span class="title function_">createApplicationContext</span><span class="params">(ApplicationInfo application, <span class="type">int</span> flags)</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> Context <span class="title function_">getApplicationContext</span><span class="params">()</span>;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Context 是一个抽象类，代表应用程序需要的全局信息，由 Android 系统实现。能够访问应用程序中的资源，启动 Activity，注册广播和服务等。</p>
+<h2 id="Activity-的-Context"><a href="#Activity-的-Context" class="headerlink" title="Activity 的 Context"></a>Activity 的 Context</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ActivityThread</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Activity <span class="title function_">performLaunchActivity</span><span class="params">(ActivityClientRecord r, Intent customIntent)</span> &#123;</span><br><span class="line">        <span class="type">ContextImpl</span> <span class="variable">appContext</span> <span class="operator">=</span> createBaseContextForActivity(r);</span><br><span class="line">        <span class="type">Application</span> <span class="variable">app</span> <span class="operator">=</span> r.packageInfo.makeApplication(<span class="literal">false</span>, mInstrumentation);</span><br><span class="line">        <span class="comment">// ContextImpl 的 mOuterContext 为 Activity</span></span><br><span class="line">        appContext.setOuterContext(activity);</span><br><span class="line">        <span class="comment">// 调用 attachBaseContext(context);</span></span><br><span class="line">        activity.attach(appContext, app, ...);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ContextImpl <span class="title function_">createBaseContextForActivity</span><span class="params">(ActivityClientRecord r)</span> &#123;</span><br><span class="line">        <span class="type">ContextImpl</span> <span class="variable">appContext</span> <span class="operator">=</span> ContextImpl.createActivityContext(<span class="built_in">this</span>, ...);</span><br><span class="line">        <span class="keyword">return</span> appContext</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Activity</span> <span class="keyword">extends</span> <span class="title class_">ContextThemeWrapper</span> ...&#123;</span><br><span class="line">    <span class="keyword">private</span> Application mApplication;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">attach</span><span class="params">(Context context, Application application,...)</span>&#123;</span><br><span class="line">        attachBaseContext(context);</span><br><span class="line">        mApplication = application;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">attachBaseContext</span><span class="params">(Context newBase)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.attachBaseContext(newBase);</span><br><span class="line">        <span class="keyword">if</span> (newBase != <span class="literal">null</span>) &#123;</span><br><span class="line">            newBase.setAutofillClient(<span class="built_in">this</span>);</span><br><span class="line">            newBase.setContentCaptureOptions(getContentCaptureOptions());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> Application <span class="title function_">getApplication</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> mApplication;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>Activity 本身就是 Context。</li>
+<li>Activity 的 mBase Context 对象为创建的 ContextImpl，在 Activity#attach() 方法中赋值。</li>
+<li>Activity 的全局上下文在 Activity#attach() 方法中赋值。</li>
+</ol>
+<h2 id="Service-的-Context"><a href="#Service-的-Context" class="headerlink" title="Service 的 Context"></a>Service 的 Context</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ActivityThread</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleCreateService</span><span class="params">(CreateServiceData data)</span> &#123;</span><br><span class="line">        <span class="type">ContextImpl</span> <span class="variable">context</span> <span class="operator">=</span> ContextImpl.createAppContext(<span class="built_in">this</span>, packageInfo);</span><br><span class="line">        <span class="type">Application</span> <span class="variable">app</span> <span class="operator">=</span> packageInfo.makeApplication(<span class="literal">false</span>, mInstrumentation);</span><br><span class="line">        <span class="comment">// ContextImpl 的 mOuterContext 为 Service</span></span><br><span class="line">        context.setOuterContext(service);</span><br><span class="line">        service.attach(context, app, ...);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Service</span> <span class="keyword">extends</span> <span class="title class_">ContextWrapper</span> ...&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">Application</span> <span class="variable">mApplication</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">attach</span><span class="params">(Context context, Application application, ...)</span> &#123;</span><br><span class="line">        attachBaseContext(context);</span><br><span class="line">        mApplication = application;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">attachBaseContext</span><span class="params">(Context newBase)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.attachBaseContext(newBase);</span><br><span class="line">        <span class="keyword">if</span> (newBase != <span class="literal">null</span>) &#123;</span><br><span class="line">            newBase.setContentCaptureOptions(getContentCaptureOptions());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Service 的 Context 和 Activity 中的类似。</p>
+<h2 id="ContextProvider-的-Context"><a href="#ContextProvider-的-Context" class="headerlink" title="ContextProvider 的 Context"></a>ContextProvider 的 Context</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ActivityThread</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleBindApplication</span><span class="params">(AppBindData data)</span> &#123;</span><br><span class="line">        <span class="type">Application</span> <span class="variable">app</span> <span class="operator">=</span> data.info.makeApplication(data.restrictedBackupMode, <span class="literal">null</span>);</span><br><span class="line">        installContentProviders(app, data.providers);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">installContentProviders</span><span class="params">(</span></span><br><span class="line"><span class="params">            Context context, List&lt;ProviderInfo&gt; providers)</span> &#123;</span><br><span class="line">        <span class="type">ContentProviderHolder</span> <span class="variable">cph</span> <span class="operator">=</span> installProvider(context, <span class="literal">null</span>, cpi, ...);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ContentProviderHolder <span class="title function_">installProvider</span><span class="params">(Context context,...)</span>&#123;</span><br><span class="line">        <span class="type">ContentProvider</span> <span class="variable">localProvider</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        IContentProvider provider;</span><br><span class="line">        <span class="type">Context</span> <span class="variable">c</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="type">ApplicationInfo</span> <span class="variable">ai</span> <span class="operator">=</span> info.applicationInfo;</span><br><span class="line">        <span class="keyword">if</span> (context.getPackageName().equals(ai.packageName)) &#123;</span><br><span class="line">            c = context;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125;</span><br><span class="line">        localProvider = packageInfo.getAppFactory() .instantiateProvider(cl, info.name);</span><br><span class="line">        provider = localProvider.getIContentProvider();</span><br><span class="line">        localProvider.attachInfo(c, info);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">ContentProvider</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">attachInfo</span><span class="params">(Context context, ProviderInfo info, <span class="type">boolean</span> testing)</span> &#123;</span><br><span class="line">        mContext = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取的是 ApplicationContext</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="meta">@Nullable</span> Context <span class="title function_">getContext</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> mContext;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> Context <span class="title function_">requireContext</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">Context</span> <span class="variable">ctx</span> <span class="operator">=</span> getContext();</span><br><span class="line">        <span class="keyword">if</span> (ctx == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;Cannot find context from the provider.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ctx;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>应用启动时会注册所有的 ContextProvider，ContentProvider#getContext() 获取的是 Application 对象。</p>
+<h2 id="BroadcastReceiver-的-Context"><a href="#BroadcastReceiver-的-Context" class="headerlink" title="BroadcastReceiver 的 Context"></a>BroadcastReceiver 的 Context</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ContextImpl</span> <span class="keyword">extends</span> <span class="title class_">Context</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Intent <span class="title function_">registerReceiver</span><span class="params">(BroadcastReceiver receiver, IntentFilter filter,</span></span><br><span class="line"><span class="params">            String broadcastPermission, Handler scheduler)</span> &#123;</span><br><span class="line">        <span class="comment">// getOuterContext() 为 Activity 或 Service</span></span><br><span class="line">        <span class="keyword">return</span> registerReceiverInternal(receiver,..., getOuterContext(), <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LoadedApk</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ReceiverDispatcher</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> Context mContext;</span><br><span class="line"></span><br><span class="line">        ReceiverDispatcher(BroadcastReceiver receiver, Context context,...) &#123;</span><br><span class="line">            mContext = context;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Args</span> <span class="keyword">extends</span> <span class="title class_">BroadcastReceiver</span>.PendingResult &#123;</span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">final</span> Runnable <span class="title function_">getRunnable</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">final</span> <span class="type">BroadcastReceiver</span> <span class="variable">receiver</span> <span class="operator">=</span> mReceiver;</span><br><span class="line">                receiver.onReceive(mContext, intent);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过 Activity 注册广播，在 onReceive(mContext, intent) 回调中传递的是 Activity 的 mOuterContext 对象，即 Activity 对象。如果通过 Service 注册，回调方法中的 context 即为 Service 对象。</p>
+<h2 id="Context-作用域"><a href="#Context-作用域" class="headerlink" title="Context 作用域"></a>Context 作用域</h2><p>由于 Context 的具体实现是由 ContextImpl 完成的，因此在绝大多数场景下，Activity、Service 和 Application 这三种类型的 Context 可以通用。</p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/Android%20Context%20%E4%BD%9C%E7%94%A8%E5%9F%9F.png" alt="Context 作用域"></p>
+<ol>
+<li><p>如果用 Application Context 去启动一个 LaunchMode 为 standard 的 Activity 时会报错。<br>**android.util.AndroidRuntimeException: Calling startActivity from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?**。<br>这是因为非 Activity 类型的 Context 并没有任务栈，所以待启动的 Activity 就找不到栈了。解决这个问题的方法就是为待启动的 Activity 指定 <code>FLAG_ACTIVITY_NEW_TASK</code> 标记位，这样启动的时候就为它创建一个新的任务栈，而此时的 Activity 是以 singleTask 模式启动的。</p>
+</li>
+<li><p>在 Application 和 Service 中使用 LayoutInflate 会使用系统默认的主题样式，如果你自定义了某些样式可能不会被使用。所以这种方式也不推荐使用。</p>
+</li>
+<li><p>在 Service 中显示 Dialog 会报 <strong>java.lang.IllegalStateException: You need to use a Theme.AppCompat theme (or descendant) with this activity.</strong> 异常。</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!a.hasValue(R.styleable.AppCompatTheme_windowActionBar)) &#123;</span><br><span class="line">    a.recycle();</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(</span><br><span class="line">            <span class="string">&quot;You need to use a Theme.AppCompat theme (or descendant) with this activity.&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="获取-Context"><a href="#获取-Context" class="headerlink" title="获取 Context"></a>获取 Context</h2><ol>
+<li><code>Activity.this</code> 返回当前的 Activity 实例，如果是 UI 控件需要使用 Activity 作为 Context 对象，但是默认的 Toast 实际上使用 ApplicationContext 也可以。</li>
+<li><code>Activity.getApplicationContext()</code> 获取当前 Activity 所在的进程的全局 Context 对象。</li>
+<li><code>View.getContext()</code> 返回当前 View 对象的 Context 对象，通常是当前正在展示的 Activity 对象。</li>
+</ol>
+<h2 id="获取-Application"><a href="#获取-Application" class="headerlink" title="获取 Application"></a>获取 Application</h2><p>Application 对象是在创建进程的时候通过 <code>LoadedApk#makeApplication()</code> 方法实例化。</p>
+<ol>
+<li>Activity 或 Service: 通过调用 <code>getApplication()</code> 方法获取 mApplication，mApplication 在 <code>attach(Context context,...)</code> 方法中赋值。</li>
+<li>BroadcastReceiver: 通过 <code>onReceive(Context context, Intent intent)</code> 方法获取到 Context 对象，进而通过 Context#getApplicationContext() 方法获取到 Application 对象;</li>
+<li>ContentProvider: 通过 getContext() 获取当前的 Application。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/12/03/Java-ThreadLocal/" rel="prev" title="Java ThreadLocal">
+                  <i class="fa fa-chevron-left"></i> Java ThreadLocal
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/01/02/Android-SharedPreferences/" rel="next" title="Android SharedPreferences">
+                  Android SharedPreferences <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

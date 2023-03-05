@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Android 中的 uid 是分配给各个进程使用，用来做权限管理的。10000 &lt; uid &lt; 19999 这个整数范围中的 id 号代表用户 app 的 uid，同时 gid 是和 uid 对齐。 android 中 uid 用于标识一个应用程序，uid 在应用安装时被分配，并且在应用存在于手机上期间，都不会改变。一个应用程序只能有一个 uid，多个应用可以使用 sharedUse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android UID">
+<meta property="og:url" content="http://example.com/2022/05/31/Android-UID/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="Android 中的 uid 是分配给各个进程使用，用来做权限管理的。10000 &lt; uid &lt; 19999 这个整数范围中的 id 号代表用户 app 的 uid，同时 gid 是和 uid 对齐。 android 中 uid 用于标识一个应用程序，uid 在应用安装时被分配，并且在应用存在于手机上期间，都不会改变。一个应用程序只能有一个 uid，多个应用可以使用 sharedUse">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-31T15:45:24.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2022/05/31/Android-UID/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/05/31/Android-UID/","path":"2022/05/31/Android-UID/","title":"Android UID"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android UID | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#UID-%E7%9A%84%E5%88%86%E9%85%8D"><span class="nav-number">1.</span> <span class="nav-text">UID 的分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B-UID"><span class="nav-number">2.</span> <span class="nav-text">查看 UID</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/31/Android-UID/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android UID | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android UID
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-05-31 23:45:24" itemprop="dateCreated datePublished" datetime="2022-05-31T23:45:24+08:00">2022-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Frameworks/" itemprop="url" rel="index"><span itemprop="name">Frameworks</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Android 中的 uid 是分配给各个进程使用，用来做权限管理的。10000 &lt; uid &lt; 19999 这个整数范围中的 id 号代表用户 app 的 uid，同时 gid 是和 uid 对齐。</p>
+<p>android 中 uid 用于标识一个应用程序，uid 在应用安装时被分配，并且在应用存在于手机上期间，都不会改变。一个应用程序只能有一个 uid，多个应用可以使用 sharedUserId 方式共享同一个 uid，前提是这些应用的签名要相同。</p>
+<span id="more"></span>
+
+<p>pid gid gids 的含义：</p>
+<ul>
+<li><strong>pid</strong> : 进程 ID，可变的</li>
+<li><strong>gid</strong>: 对应于 linux 中用户组的概念，android 中 gid 等于 uid</li>
+<li><strong>gids</strong>: 个 GIDS 相当于一个权限的集合，一个 UID 可以关联 GIDS，表明该 UID 拥有多种权限</li>
+</ul>
+<p>一个进程就是 host 应用程序的沙箱，里面一般有一个 UID 和多个 GIDS，每个进程只能访问 UID 的权限范围内的文件和 GIDs 所允许访问的接口，构成了 Android 最基本的安全基础。</p>
+<h2 id="UID-的分配"><a href="#UID-的分配" class="headerlink" title="UID 的分配"></a>UID 的分配</h2><blockquote>
+<p>源码基于 Android 11.0&#x2F;R&#x2F;sdk-30</p>
+</blockquote>
+<p>App 的 UID 是在安装的时候确认的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PackageManagerService.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> AndroidPackage <span class="title function_">addForInitLI</span><span class="params">(ParsedPackage parsedPackage,...)</span>&#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">ScanRequest</span> <span class="variable">request</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ScanRequest</span>(parsedPackage, ...);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">ScanResult</span> <span class="variable">scanResult</span> <span class="operator">=</span> scanPackageOnlyLI(request, ...);</span><br><span class="line">    <span class="keyword">if</span> (scanResult.existingSettingCopied &amp;&amp; scanResult.request.pkgSetting != <span class="literal">null</span>) &#123;</span><br><span class="line">        scanResult.request.pkgSetting.updateFrom(scanResult.pkgSetting);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> ScanResult <span class="title function_">scanPackageOnlyLI</span><span class="params">(<span class="meta">@NonNull</span> ScanRequest request, ...)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (createNewPackage) &#123;</span><br><span class="line">        pkgSetting = Settings.createNewSetting(parsedPackage.getPackageName(),...);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        pkgSetting = <span class="keyword">new</span> <span class="title class_">PackageSetting</span>(pkgSetting);</span><br><span class="line">        pkgSetting.pkg = parsedPackage;</span><br><span class="line">        Settings.updatePackageSetting(pkgSetting, ...);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根据 uid 获取包名</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">getPackagesForUid</span><span class="params">(<span class="type">int</span> uid)</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mContext.getPackageManager().getPackagesForUid(uid)[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>PackageManagerService#getPackagesForUid(uid) 返回 String[]，因为多个包名可以复用同一个 uid。</p>
+<h2 id="查看-UID"><a href="#查看-UID" class="headerlink" title="查看 UID"></a>查看 UID</h2><p>uid 的值定义在 Process.java 类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* An invalid UID value.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">INVALID_UID</span> <span class="operator">=</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Defines the root UID.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">ROOT_UID</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Defines the UID/GID under which system code runs.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">SYSTEM_UID</span> <span class="operator">=</span> <span class="number">1000</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Defines the start of a range of UIDs (and GIDs), going from this</span></span><br><span class="line"><span class="comment">* number to &#123;<span class="doctag">@link</span> #LAST_APPLICATION_UID&#125; that are reserved for assigning</span></span><br><span class="line"><span class="comment">* to applications.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">FIRST_APPLICATION_UID</span> <span class="operator">=</span> <span class="number">10000</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Last of application-specific UIDs starting at</span></span><br><span class="line"><span class="comment">* &#123;<span class="doctag">@link</span> #FIRST_APPLICATION_UID&#125;.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">LAST_APPLICATION_UID</span> <span class="operator">=</span> <span class="number">19999</span>;</span><br></pre></td></tr></table></figure>
+
+<p>通过 adb 查看：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\Administrator&gt;adb shell ps -A</span><br><span class="line">USER            PID   PPID     VSZ    RSS WCHAN            ADDR S NAME</span><br><span class="line">root              1      0 10782796  7940 0                   0 S init</span><br><span class="line">root            277      1 13490100 174656 0                  0 S zygote64</span><br><span class="line">root            278      1 1833480 163260 0                   0 S zygote</span><br><span class="line">system          520    277 14016032 351988 0                  0 S system_server</span><br><span class="line">u0_a121         727    277 13059552 231184 0                  0 S com.android.systemui</span><br><span class="line">u0_a117         988    277 13011692 173944 0                  0 S com.android.launcher3</span><br><span class="line">u0_a67         2177    277 12938684 163444 0                  0 S com.android.packageinstaller</span><br></pre></td></tr></table></figure>
+
+<p>u0_a67 表示该应用是 user 0（主用户）下面的应用，id 是 67。普通应用程序的 UID 都是从 10000 开始的，所以 packageinstaller 的 uid &#x3D; 10067。</p>
+<p>如果手机有 root 权限的话，可以查看 <code>/data/system/packages.list</code> 和 <code>/data/system/packages.xml</code> 文件。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/22620803">[1] 关于 android UID u0_axx 是怎么来的</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904151764172807">[2] Android UID 问题 uid 改变进行了覆盖安装</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/05/30/Git-%E5%91%BD%E4%BB%A4/" rel="prev" title="Git 命令">
+                  <i class="fa fa-chevron-left"></i> Git 命令
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/06/03/Shell-%E8%84%9A%E6%9C%AC/" rel="next" title="Shell 脚本">
+                  Shell 脚本 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

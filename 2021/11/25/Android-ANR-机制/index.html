@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ANR(Application Not Responding ) 应用无响应的简称，是 Android 系统为了在 App 卡死时给用户强制退出 App 的机会，从而避免无响应问题，一方面提升用户体验，另一方面也是 Android 系统的一种自我保护机制。   下面基于 Android 11.0，分析四大组件产生 ANR 的流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android ANR 机制">
+<meta property="og:url" content="http://example.com/2021/11/25/Android-ANR-%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="ANR(Application Not Responding ) 应用无响应的简称，是 Android 系统为了在 App 卡死时给用户强制退出 App 的机会，从而避免无响应问题，一方面提升用户体验，另一方面也是 Android 系统的一种自我保护机制。   下面基于 Android 11.0，分析四大组件产生 ANR 的流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr-process.png">
+<meta property="article:published_time" content="2021-11-25T09:19:47.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.115Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="ANR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr-process.png">
+
+
+<link rel="canonical" href="http://example.com/2021/11/25/Android-ANR-%E6%9C%BA%E5%88%B6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2021/11/25/Android-ANR-%E6%9C%BA%E5%88%B6/","path":"2021/11/25/Android-ANR-机制/","title":"Android ANR 机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android ANR 机制 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Broadcast-ANR"><span class="nav-number">1.</span> <span class="nav-text">Broadcast ANR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-ANR"><span class="nav-number">2.</span> <span class="nav-text">Service ANR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ContentProvider-ANR"><span class="nav-number">3.</span> <span class="nav-text">ContentProvider ANR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity-ANR"><span class="nav-number">4.</span> <span class="nav-text">Activity ANR</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-ANR-%E4%BF%A1%E6%81%AF"><span class="nav-number">4.1.</span> <span class="nav-text">生成 ANR 信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/25/Android-ANR-%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android ANR 机制 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android ANR 机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-11-25 17:19:47" itemprop="dateCreated datePublished" datetime="2021-11-25T17:19:47+08:00">2021-11-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ANR/" itemprop="url" rel="index"><span itemprop="name">ANR</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>ANR(Application Not Responding ) 应用无响应的简称，是 Android 系统为了在 App 卡死时给用户强制退出 App 的机会，从而避免无响应问题，一方面提升用户体验，另一方面也是 Android 系统的一种自我保护机制。  </p>
+<p>下面基于 Android 11.0，分析四大组件产生 ANR 的流程。</p>
+<span id="more"></span>
+<h2 id="Broadcast-ANR"><a href="#Broadcast-ANR" class="headerlink" title="Broadcast ANR"></a>Broadcast ANR</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// BroadcastQueue.java</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">processNextBroadcast</span><span class="params">(<span class="type">boolean</span> fromMsg)</span> &#123;</span><br><span class="line">    <span class="comment">//通过 AMS 更新 CPU 使用信息</span></span><br><span class="line">    mService.updateCpuStats();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// First, deliver any non-serialized broadcasts right away.</span></span><br><span class="line">    <span class="keyword">while</span> (mParallelBroadcasts.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//发送 BROADCAST_TIMEOUT_MSG 消息</span></span><br><span class="line">    broadcastTimeoutLocked(<span class="literal">false</span>); <span class="comment">// forcibly finish this broadcast</span></span><br><span class="line">    <span class="comment">//执行广播</span></span><br><span class="line">    performReceiveLocked(r.callerApp, r.resultTo,...);</span><br><span class="line">    <span class="comment">//移除 BROADCAST_TIMEOUT_MSG 消息</span></span><br><span class="line">    cancelBroadcastTimeoutLocked();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>先处理并行广播，因为是单向通知，不需要等待反馈，所以并行广播没有 ANR。</li>
+<li>再处理串行广播。<ol>
+<li>判断是否已经有一个广播超时消息；</li>
+<li>根据目标进程优先级，分别在前台队列和后台队列（超时时限不同）中排队处理；</li>
+<li>根据不同的队列，发出不同延时的 ANR 消息；如果处理及时，取消延时消息；如果处理超时，触发 ANR；</li>
+</ol>
+</li>
+</ol>
+<p>广播的 ANR 处理相对简单，主要是再次判断是否超时、记录日志，记录 ANR 次数等。然后就继续调用 processNextBroadcast 函数，处理下一条广播了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ActivityManagerService.java</span></span><br><span class="line"><span class="comment">// How long we allow a receiver to run before giving up on it.</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">BROADCAST_FG_TIMEOUT</span> <span class="operator">=</span> <span class="number">10</span>*<span class="number">1000</span>;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">BROADCAST_BG_TIMEOUT</span> <span class="operator">=</span> <span class="number">60</span>*<span class="number">1000</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Service-ANR"><a href="#Service-ANR" class="headerlink" title="Service ANR"></a>Service ANR</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ActiveServices</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">SERVICE_TIMEOUT</span> <span class="operator">=</span> <span class="number">20</span>*<span class="number">1000</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">SERVICE_BACKGROUND_TIMEOUT</span> <span class="operator">=</span> SERVICE_TIMEOUT * <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动服务时判断是否是前台服务</span></span><br><span class="line">    ComponentName <span class="title function_">startServiceLocked</span><span class="params">(IApplicationThread caller, ...)</span>&#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">boolean</span> callerFg;</span><br><span class="line">        <span class="keyword">if</span> (caller != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> <span class="type">ProcessRecord</span> <span class="variable">callerApp</span> <span class="operator">=</span> mAm.getRecordForAppLocked(caller);</span><br><span class="line">            callerFg = callerApp.setSchedGroup != ProcessList.SCHED_GROUP_BACKGROUND;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            callerFg = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发送服务超时消息。启动服务时调用</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">scheduleServiceTimeoutLocked</span><span class="params">(ProcessRecord proc)</span> &#123;</span><br><span class="line">        <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> mAm.mHandler.obtainMessage(ActivityManagerService.SERVICE_TIMEOUT_MSG);</span><br><span class="line">        msg.obj = proc;</span><br><span class="line">        mAm.mHandler.sendMessageDelayed(msg,</span><br><span class="line">                proc.execServicesFg ? SERVICE_TIMEOUT : SERVICE_BACKGROUND_TIMEOUT);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理服务超时消息</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">serviceTimeout</span><span class="params">(ProcessRecord proc)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">anrMessage</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (timeout != <span class="literal">null</span> &amp;&amp; mAm.mProcessList.mLruProcesses.contains(proc)) &#123;</span><br><span class="line">            Slog.w(TAG, <span class="string">&quot;Timeout executing service: &quot;</span> + timeout);</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">            anrMessage = <span class="string">&quot;executing service &quot;</span> + timeout.shortInstanceName;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//时间未到，发送超时消息</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (anrMessage != <span class="literal">null</span>) &#123;</span><br><span class="line">            mAm.mAnrHelper.appNotResponding(proc, anrMessage);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 服务执行完成取消超时消息</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">serviceDoneExecutingLocked</span><span class="params">(ServiceRecord r, <span class="type">boolean</span> inDestroying,</span></span><br><span class="line"><span class="params">            <span class="type">boolean</span> finishing)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (r.app.executingServices.size() == <span class="number">0</span>) &#123;</span><br><span class="line">            mAm.mHandler.removeMessages(ActivityManagerService.SERVICE_TIMEOUT_MSG, r.app);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动服务时判断是否是前台服务，决定超时时间；</li>
+<li>发送 SERVICE_TIMEOUT_MSG 服务超时消息；</li>
+<li>如果服务没有超时，移除消息。否则处理服务超时逻辑，记录日志等。</li>
+</ol>
+<h2 id="ContentProvider-ANR"><a href="#ContentProvider-ANR" class="headerlink" title="ContentProvider ANR"></a>ContentProvider ANR</h2><p>ContentProvider 超时为 <code>CONTENT_PROVIDER_PUBLISH_TIMEOUT = 10s</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">ContentResolver</span> <span class="keyword">implements</span> <span class="title class_">ContentInterface</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * How long we wait for an attached process to publish its content providers</span></span><br><span class="line"><span class="comment">     * before we decide it must be hung.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">CONTENT_PROVIDER_PUBLISH_TIMEOUT_MILLIS</span> <span class="operator">=</span> <span class="number">10</span> * <span class="number">1000</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ActivityManagerService</span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">attachApplicationLocked</span><span class="params">(<span class="meta">@NonNull</span> IApplicationThread thread, <span class="type">int</span> pid, ...)</span> &#123;</span><br><span class="line">        <span class="comment">//启动的 App 存在 provider，则超时10s后发送 CONTENT_PROVIDER_PUBLISH_TIMEOUT_MSG 消息</span></span><br><span class="line">        <span class="keyword">if</span> (providers != <span class="literal">null</span> &amp;&amp; checkAppInLaunchingProvidersLocked(app)) &#123;</span><br><span class="line">            <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> mHandler.obtainMessage(CONTENT_PROVIDER_PUBLISH_TIMEOUT_MSG);</span><br><span class="line">            msg.obj = app;</span><br><span class="line">            mHandler.sendMessageDelayed(msg, ContentResolver.CONTENT_PROVIDER_PUBLISH_TIMEOUT_MILLIS);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// App 进程发布 Provider 成功后移除消息</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">publishContentProviders</span><span class="params">(IApplicationThread caller, List&lt;ContentProviderHolder&gt; providers)</span> &#123;</span><br><span class="line">        <span class="comment">//成功pubish则移除该消息</span></span><br><span class="line">        <span class="keyword">if</span> (wasInLaunchingProviders) &#123;</span><br><span class="line">            mHandler.removeMessages(CONTENT_PROVIDER_PUBLISH_TIMEOUT_MSG, r);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发布 Provider 失败，</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">processContentProviderPublishTimedOutLocked</span><span class="params">(ProcessRecord app)</span> &#123;</span><br><span class="line">        cleanupAppInLaunchingProvidersLocked(app, <span class="literal">true</span>);</span><br><span class="line">        mProcessList.removeProcessLocked(app, <span class="literal">false</span>, <span class="literal">true</span>,</span><br><span class="line">                ApplicationExitInfo.REASON_INITIALIZATION_FAILURE,</span><br><span class="line">                ApplicationExitInfo.SUBREASON_UNKNOWN,</span><br><span class="line">                <span class="string">&quot;timeout publishing content providers&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Activity-ANR"><a href="#Activity-ANR" class="headerlink" title="Activity ANR"></a>Activity ANR</h2><p>Activity 的 ANR 是相对最复杂的，也只有 Activity 中出现的 ANR 会弹出 ANR 提示框。<br>最终的表现形式是：弹出一个对话框，告诉用户当前某个程序无响应，输入一大堆与 ANR 相关的日志，便于开发者解决问题。</p>
+<p><strong>InputDispatching：</strong></p>
+<p>Activity 最主要的功能之一是交互，为了方便交互，Android 中的 InputDispatcher 会发出操作事件，最终在 InputManagerService 中发出事件，通过 InputChannel 向 Activity 分发事件。交互事件必须得到响应，如果不能及时处理，IMS 就会报出 ANR，交给 AMS 去弹出 ANR 提示框。</p>
+<p><strong>KeyDispatching：</strong></p>
+<p>如果输入是个 Key 事件，会从 IMS 进入 ActivityRecord.Token.keyDispatchingTimeOut，然后进入 AMS 处理，不同的是，在 ActivityRecord 中，会先截留一次 Key 的不响应，只有当 Key 连续第二次处理超时，才会弹出 ANR 提示框。</p>
+<p><strong>窗口焦点：</strong></p>
+<p>Activity 总是需要有一个当前窗口来响应事件的，但如果迟迟没有当前窗口（获得焦点），比如在 Activity 切换时，旧 Activity 已经 onPause，新的 Activity 一直没有 onResume，持续超过 5 秒，就会 ANR。<br>App 的生命周期太慢，或 CPU 资源不足，或 WMS 异常，都可能导致窗口焦点。</p>
+<p><strong>1. 判断是否有 focused 组件以及 focused Application：</strong></p>
+<p>这种一般是在应用启动时触发，比如启动时间过长在这过程中触发了 keyevent 或者 trackball moteionevent 就会出现。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ~/frameworks/native/services/inputflinger/dispatcher/InputDispatcher.cpp</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">InputDispatcher::dumpDispatchStateLocked</span><span class="params">(String8&amp; dump)</span> </span>&#123;</span><br><span class="line">    dump.<span class="built_in">appendFormat</span>(INDENT <span class="string">&quot;DispatchEnabled: %d\n&quot;</span>, mDispatchEnabled);</span><br><span class="line">    dump.<span class="built_in">appendFormat</span>(INDENT <span class="string">&quot;DispatchFrozen: %d\n&quot;</span>, mDispatchFrozen);</span><br><span class="line">    <span class="keyword">if</span> (mFocusedApplicationHandle != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        dump.<span class="built_in">appendFormat</span>(INDENT <span class="string">&quot;FocusedApplication: name=&#x27;%s&#x27;, dispatchingTimeout=%0.3fms\n&quot;</span>,</span><br><span class="line">                mFocusedApplicationHandle-&gt;<span class="built_in">getName</span>().<span class="built_in">string</span>(),</span><br><span class="line">                mFocusedApplicationHandle-&gt;<span class="built_in">getDispatchingTimeout</span>(</span><br><span class="line">                        DEFAULT_INPUT_DISPATCHING_TIMEOUT) / <span class="number">1000000.0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        dump.<span class="built_in">append</span>(INDENT <span class="string">&quot;FocusedApplication: &lt;null&gt;\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应于</p>
+<blockquote>
+<p>Reason: Input dispatching timed out (Waiting because no window has focus but there is a focused application that may eventually add a window when it finishes starting up.)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ActivityManagerService.java</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Handle input dispatching timeouts.</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span> whether input dispatching should be aborted or not.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">boolean</span> <span class="title function_">inputDispatchingTimedOut</span><span class="params">(ProcessRecord proc, ...)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> String annotation;</span><br><span class="line">    <span class="keyword">if</span> (reason == <span class="literal">null</span>) &#123;</span><br><span class="line">        annotation = <span class="string">&quot;Input dispatching timed out&quot;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        annotation = <span class="string">&quot;Input dispatching timed out (&quot;</span> + reason + <span class="string">&quot;)&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (proc != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (proc.isDebugging()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (proc.getActiveInstrumentation() != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="type">Bundle</span> <span class="variable">info</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Bundle</span>();</span><br><span class="line">                info.putString(<span class="string">&quot;shortMsg&quot;</span>, <span class="string">&quot;keyDispatchingTimedOut&quot;</span>);</span><br><span class="line">                info.putString(<span class="string">&quot;longMsg&quot;</span>, annotation);</span><br><span class="line">                finishInstrumentationLocked(proc, Activity.RESULT_CANCELED, info);</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        mAnrHelper.appNotResponding(proc, activityShortComponentName, aInfo,</span><br><span class="line">                parentShortComponentName, parentProcess, aboveSystem, annotation);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 判断前面的事件是否及时完成：</strong></p>
+<p>对应于</p>
+<blockquote>
+<p>Reason: Input dispatching timed out (Waiting to send non-key event because the touched window has not finished processing certain input events that were delivered to it over 500.0ms ago. Wait queue length: 10. Wait queue head age: 5591.3ms.)</p>
+</blockquote>
+<p>出现这种问题意味着主线程正在执行其他的事件但是比较耗时导致输入事件无法及时处理。</p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr-process.png" alt="ANR 流程"></p>
+<h3 id="生成-ANR-信息"><a href="#生成-ANR-信息" class="headerlink" title="生成 ANR 信息"></a>生成 ANR 信息</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ProcessRecord.java</span></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">appNotResponding</span><span class="params">(ProcessRecord app, ActivityRecord activity,...)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">anrTime</span> <span class="operator">=</span> SystemClock.uptimeMillis();</span><br><span class="line">    <span class="comment">// 默认 true</span></span><br><span class="line">    <span class="keyword">if</span> (isMonitorCpuUsage()) &#123;</span><br><span class="line">        <span class="comment">// 更新CPU使用信息。ANR的第一次CPU信息采样，采样数据会保存在mProcessStats这个变量中</span></span><br><span class="line">        mService.updateCpuStatsNow();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> isSilentAnr;</span><br><span class="line">    <span class="comment">// 进程正在处于正在关闭的状态，正在crash的状态，被kill的状态，或者相同进程已经处在ANR的流程中的进程直接返回。</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 记录ANR到 event log</span></span><br><span class="line">    EventLog.writeEvent(EventLogTags.AM_ANR, app.userId, app.pid,...;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 选择需要 dump 的进程。系统进程，LRU 进程和 Native 进程。</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 收集 log 信息，输出 main log.</span></span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">info</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    info.setLength(<span class="number">0</span>);</span><br><span class="line">    info.append(<span class="string">&quot;ANR in &quot;</span>).append(app.processName);</span><br><span class="line">    <span class="keyword">if</span> (activity != <span class="literal">null</span> &amp;&amp; activity.shortComponentName != <span class="literal">null</span>) &#123;</span><br><span class="line">        info.append(<span class="string">&quot; (&quot;</span>).append(activity.shortComponentName).append(<span class="string">&quot;)&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    info.append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    info.append(<span class="string">&quot;PID: &quot;</span>).append(app.pid).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span> (annotation != <span class="literal">null</span>) &#123;</span><br><span class="line">        info.append(<span class="string">&quot;Reason: &quot;</span>).append(annotation).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (parent != <span class="literal">null</span> &amp;&amp; parent != activity) &#123;</span><br><span class="line">        info.append(<span class="string">&quot;Parent: &quot;</span>).append(parent.shortComponentName).append(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">StringBuilder</span> <span class="variable">report</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    report.append(MemoryPressureUtil.currentPsiState());</span><br><span class="line">    <span class="type">ProcessCpuTracker</span> <span class="variable">processCpuTracker</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProcessCpuTracker</span>(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 保存日志到 /data/anr 目录</span></span><br><span class="line">    <span class="type">File</span> <span class="variable">tracesFile</span> <span class="operator">=</span> ActivityManagerService.dumpStackTraces(<span class="literal">true</span>, firstPids,...);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 默认 true</span></span><br><span class="line">    <span class="keyword">if</span> (isMonitorCpuUsage()) &#123;</span><br><span class="line">        <span class="comment">// 更新CPU使用信息。ANR的第二次CPU使用信息采样。两次采样的数据分别对应ANR发生前后的CPU使用情况</span></span><br><span class="line">        mService.updateCpuStatsNow();</span><br><span class="line">        <span class="keyword">synchronized</span> (mService.mProcessCpuTracker) &#123;</span><br><span class="line">            <span class="comment">// 输出ANR发生前一段时间内各个进程的CPU使用情况</span></span><br><span class="line">            report.append(mService.mProcessCpuTracker.printCurrentState(anrTime));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 输出CPU负载</span></span><br><span class="line">        info.append(processCpuTracker.printCurrentLoad());</span><br><span class="line">        info.append(report);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出ANR发生后一段时间内各个进程的CPU使用率</span></span><br><span class="line">    info.append(processCpuTracker.printCurrentState(anrTime));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 打印 ANR 日志</span></span><br><span class="line">    Slog.e(TAG, info.toString());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (tracesFile == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// There is no trace file, so dump (only) the alleged culprit&#x27;s threads to the log</span></span><br><span class="line">        <span class="comment">// 发送signal 3(SIGNAL_QUIT)来dump栈信息</span></span><br><span class="line">        Process.sendSignal(app.pid, Process.SIGNAL_QUIT);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (offsets[<span class="number">1</span>] &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// We&#x27;ve dumped into the trace file successfully</span></span><br><span class="line">        mService.mProcessList.mAppExitInfoTracker.scheduleLogAnrTrace(</span><br><span class="line">                pid, uid, getPackageList(), tracesFile, offsets[<span class="number">0</span>], offsets[<span class="number">1</span>]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将anr信息同时输出到DropBox</span></span><br><span class="line">    mService.addErrorToDropBox(<span class="string">&quot;anr&quot;</span>, app, app.processName, ...);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 后台 anr 会结束进程。可以在开发者选项中打开后台 ANR</span></span><br><span class="line">    <span class="keyword">if</span> (isSilentAnr() &amp;&amp; !isDebugging()) &#123;</span><br><span class="line">        kill(<span class="string">&quot;bg anr&quot;</span>, ApplicationExitInfo.REASON_ANR, <span class="literal">true</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Bring up the infamous App Not Responding dialog</span></span><br><span class="line">    <span class="comment">// 显示ANR对话框。发送 SHOW_NOT_RESPONDING_MSG 消息，显示 anr 对话框</span></span><br><span class="line">    <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> Message.obtain();</span><br><span class="line">    msg.what = ActivityManagerService.SHOW_NOT_RESPONDING_UI_MSG;</span><br><span class="line">    msg.obj = <span class="keyword">new</span> <span class="title class_">AppNotRespondingDialog</span>.Data(<span class="built_in">this</span>, aInfo, aboveSystem);</span><br><span class="line"></span><br><span class="line">    mService.mUiHandler.sendMessage(msg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ActivityManagerService</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">ANR_TRACE_DIR</span> <span class="operator">=</span> <span class="string">&quot;/data/anr&quot;</span>;</span><br><span class="line"></span><br><span class="line">    File <span class="title function_">dumpStackTraces</span><span class="params">(ArrayList&lt;Integer&gt; firstPids, ...)</span>&#123;</span><br><span class="line">        <span class="comment">// 打印到 main log</span></span><br><span class="line">        Slog.i(TAG, <span class="string">&quot;dumpStackTraces pids=&quot;</span> + lastPids + <span class="string">&quot; nativepids=&quot;</span> + nativePids);</span><br><span class="line">        <span class="keyword">final</span> <span class="type">File</span> <span class="variable">tracesDir</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(ANR_TRACE_DIR);</span><br><span class="line">        <span class="comment">// 创建 ANR 文件，可能失败。以 yyyy-MM-dd-HH-mm-ss-SSS 格式命名。</span></span><br><span class="line">        <span class="type">File</span> <span class="variable">tracesFile</span> <span class="operator">=</span> createAnrDumpFile(tracesDir);</span><br><span class="line">        Pair&lt;Long, Long&gt; offsets = dumpStackTraces(</span><br><span class="line">                tracesFile.getAbsolutePath(), firstPids, nativePids, extraPids);</span><br><span class="line">        <span class="keyword">return</span> tracesFile;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@return</span> The start/end offset of the trace of the very first PID</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Pair&lt;Long, Long&gt; <span class="title function_">dumpStackTraces</span><span class="params">(String tracesFile, ArrayList&lt;Integer&gt; firstPids,</span></span><br><span class="line"><span class="params">        ArrayList&lt;Integer&gt; nativePids, ArrayList&lt;Integer&gt; extraPids)</span> &#123;</span><br><span class="line">        <span class="comment">// 打印到 main log</span></span><br><span class="line">        Slog.i(TAG, <span class="string">&quot;Dumping to &quot;</span> + tracesFile);</span><br><span class="line">        <span class="comment">// We must complete all stack dumps within 20 seconds.</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">remainingTime</span> <span class="operator">=</span> <span class="number">20</span> * <span class="number">1000</span>;</span><br><span class="line">        <span class="comment">// First collect all of the stacks of the most important pids.</span></span><br><span class="line">        <span class="keyword">if</span> (firstPids != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 首先收集重要进程的堆栈</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Next collect the stacks of the native pids</span></span><br><span class="line">        <span class="keyword">if</span> (nativePids != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 再收集 Native 进程堆栈</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Lastly, dump stacks for all extra PIDs from the CPU tracker.</span></span><br><span class="line">        <span class="keyword">if</span> (extraPids != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 最后收集其他进程堆栈信息</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>收集 ANR 信息最长 20 秒；</li>
+<li>调用 <code>Debug.dumpJavaBacktraceToFileTimeout()</code> native 方法，按进程重要程度 dump 信息堆栈信息。</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">debuggerd_trigger_dump</span><span class="params">(<span class="type">pid_t</span> tid, DebuggerdDumpType dump_type, <span class="type">unsigned</span> <span class="type">int</span> timeout_ms, unique_fd output_fd)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">LOG</span>(INFO) &lt;&lt; TAG <span class="string">&quot;started dumping process &quot;</span> &lt;&lt; pid;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Send the signal.</span></span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> signal = (dump_type == kDebuggerdJavaBacktrace) ? SIGQUIT : BIONIC_SIGNAL_DEBUGGER;</span><br><span class="line">    sigval val = &#123;.sival_int = (dump_type == kDebuggerdNativeBacktrace) ? <span class="number">1</span> : <span class="number">0</span>&#125;;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">sigqueue</span>(pid, signal, val) != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">log_error</span>(output_fd, errno, <span class="string">&quot;failed to send signal to pid %d&quot;</span>, pid);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">LOG</span>(INFO) &lt;&lt; TAG <span class="string">&quot;done dumping process &quot;</span> &lt;&lt; pid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每一个应用进程都会有一个 SignalCatcher 线程，专门处理 SIGQUIT，来到 <code>art/runtime/signal_catcher.cc</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span>* <span class="title function_">SignalCatcher::Run</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    SignalCatcher* signal_catcher = reinterpret_cast&lt;SignalCatcher*&gt;(arg);</span><br><span class="line">    CHECK(signal_catcher != nullptr);</span><br><span class="line"></span><br><span class="line">    Runtime* runtime = Runtime::Current();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// Set up mask with signals we want to handle.</span></span><br><span class="line">    SignalSet signals;</span><br><span class="line">    signals.Add(SIGQUIT);</span><br><span class="line">    signals.Add(SIGUSR1);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="type">int</span> signal_number = signal_catcher-&gt;WaitForSignal(self, signals);</span><br><span class="line">        <span class="keyword">if</span> (signal_catcher-&gt;ShouldHalt()) &#123;</span><br><span class="line">            runtime-&gt;DetachCurrentThread();</span><br><span class="line">            <span class="keyword">return</span> nullptr;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">switch</span> (signal_number) &#123;</span><br><span class="line">            <span class="keyword">case</span> SIGQUIT:</span><br><span class="line">                signal_catcher-&gt;HandleSigQuit();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> SIGUSR1:</span><br><span class="line">                signal_catcher-&gt;HandleSigUsr1();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                LOG(ERROR) &lt;&lt; <span class="string">&quot;Unexpected signal %d&quot;</span> &lt;&lt; signal_number;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当应用发生 ANR 之后，系统会收集许多进程，来 dump 堆栈，从而生成 ANR Trace 文件。收集的第一个也是一定会被收集到的进程，就是发生 ANR 的进程。接着系统开始向这些应用进程发送 SIGQUIT 信号，应用进程收到 SIGQUIT 后开始 dump 堆栈。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://developer.android.com/topic/performance/vitals/anr#java">[1] developer ANRs</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d19c34e7e9bd">[2] Android ANR 分析详解</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/7f7054125b82">[3] 看完这篇 Android ANR 分析，就可以和面试官装逼了！</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/ZLnSaZYtUDHzAyYx-OnT9Q">[4] 微信 Android 团队手把手教你高效监控 ANR</a><br><a target="_blank" rel="noopener" href="http://gityuan.com/2017/01/01/input-anr/">[5] Input 系统—ANR 原理分析 - Gityuan</a><br><a target="_blank" rel="noopener" href="http://gityuan.com/2019/04/06/android-anr/">[6] 彻底理解安卓应用无响应机制 - Gityuan</a><br><a target="_blank" rel="noopener" href="http://gityuan.com/2016/07/02/android-anr/">[7] 理解 Android ANR 的触发原理 - Gityuan</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/ANR/" rel="tag"># ANR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/11/01/Retrofit-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="prev" title="Retrofit 源码分析">
+                  <i class="fa fa-chevron-left"></i> Retrofit 源码分析
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/12/Android-Leakcanary-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="next" title="Android Leakcanary 源码分析">
+                  Android Leakcanary 源码分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

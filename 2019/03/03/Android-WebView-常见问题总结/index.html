@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文总结了一些开发中常见的问题，如 WebView 中图片不显示，inputfile 标签无效等问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android WebView 常见问题总结">
+<meta property="og:url" content="http://example.com/2019/03/03/Android-WebView-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="本文总结了一些开发中常见的问题，如 WebView 中图片不显示，inputfile 标签无效等问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-03T06:37:52.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="View">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2019/03/03/Android-WebView-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2019/03/03/Android-WebView-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/","path":"2019/03/03/Android-WebView-常见问题总结/","title":"Android WebView 常见问题总结"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android WebView 常见问题总结 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#H5-%E5%92%8C-Native-%E4%BA%A4%E4%BA%92"><span class="nav-number">1.</span> <span class="nav-text">H5 和 Native 交互</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebView-%E7%9A%84%E5%9D%91"><span class="nav-number">2.</span> <span class="nav-text">WebView 的坑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E7%89%87%E6%98%BE%E7%A4%BA%E4%B8%8D%E5%87%BA%E6%9D%A5"><span class="nav-number">2.1.</span> <span class="nav-text">图片显示不出来</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-input-type-x3D-%E2%80%9Dfile%E2%80%9D-x2F-gt-%E6%A0%87%E7%AD%BE%E6%97%A0%E6%95%88"><span class="nav-number">2.2.</span> <span class="nav-text">&lt; input type&#x3D;”file” &#x2F;&gt; 标签无效</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E5%8A%A0%E9%80%9F%E5%AF%BC%E8%87%B4%E5%A4%A7%E5%9B%BE%E6%97%A0%E6%B3%95%E6%98%BE%E7%A4%BA"><span class="nav-number">2.3.</span> <span class="nav-text">硬件加速导致大图无法显示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebView-%E4%BC%98%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">WebView 优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96"><span class="nav-number">3.1.</span> <span class="nav-text">内存优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96"><span class="nav-number">3.2.</span> <span class="nav-text">启动优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%AB%AF%E4%BC%98%E5%8C%96"><span class="nav-number">3.2.1.</span> <span class="nav-text">前端优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AD%89%E9%A1%B5%E9%9D%A2-finish-%E5%86%8D%E5%8A%A0%E8%BD%BD%E5%9B%BE%E7%89%87"><span class="nav-number">3.2.2.</span> <span class="nav-text">等页面 finish 再加载图片</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Webview-%E9%A2%84%E5%8A%A0%E8%BD%BD"><span class="nav-number">3.2.3.</span> <span class="nav-text">Webview 预加载</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebView-%E5%AE%9A%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">WebView 定制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSettings-%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">WebSettings 设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E8%BF%9B%E5%BA%A6%E6%9D%A1"><span class="nav-number">4.2.</span> <span class="nav-text">添加进度条</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%99%E8%AF%AF%E7%95%8C%E9%9D%A2"><span class="nav-number">4.3.</span> <span class="nav-text">自定义错误界面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E6%BB%9A%E5%8A%A8%E5%88%B0%E9%A1%B5%E9%9D%A2%E5%BA%95%E7%AB%AF"><span class="nav-number">4.4.</span> <span class="nav-text">判断是否滚动到页面底端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E5%9E%82%E7%9B%B4%E6%BB%9A%E5%8A%A8%E6%9D%A1"><span class="nav-number">4.5.</span> <span class="nav-text">判断是否存在垂直滚动条</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%BD%91%E9%A1%B5%E7%9A%84%E6%A0%87%E9%A2%98%E8%AE%BE%E7%BD%AE%E6%A0%87%E9%A2%98%E6%A0%8F"><span class="nav-number">4.6.</span> <span class="nav-text">使用网页的标题设置标题栏</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/03/03/Android-WebView-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android WebView 常见问题总结 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android WebView 常见问题总结
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-03-03 14:37:52" itemprop="dateCreated datePublished" datetime="2019-03-03T14:37:52+08:00">2019-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/View/" itemprop="url" rel="index"><span itemprop="name">View</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文总结了一些开发中常见的问题，如 WebView 中图片不显示，inputfile 标签无效等问题。</p>
+<span id="more"></span>
+
+<h2 id="H5-和-Native-交互"><a href="#H5-和-Native-交互" class="headerlink" title="H5 和 Native 交互"></a>H5 和 Native 交互</h2><ol>
+<li>使用 <code>JavaScriptInterface</code> 注解约定的方法名称，方法名要禁止混淆。</li>
+<li>自定义协议。Native 和 H5 互相发送消息（json 格式），解析，反射调用客户端方法。</li>
+</ol>
+<h2 id="WebView-的坑"><a href="#WebView-的坑" class="headerlink" title="WebView 的坑"></a>WebView 的坑</h2><h3 id="图片显示不出来"><a href="#图片显示不出来" class="headerlink" title="图片显示不出来"></a>图片显示不出来</h3><p>Android 5.0 以后 url 协议和图片链接的 url 协议不一致导致的图片显示不出来，默认不允许混合模式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;</span><br><span class="line">   webSetting.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>MIXED_CONTENT_ALWAYS_ALLOW</strong> 允许从任何来源加载内容，即使来源是不安全的；</li>
+<li><strong>MIXED_CONTENT_NEVER_ALLOW</strong> 不允许混合模式，即不允许从安全的起源去加载一个不安全的资源；</li>
+<li><strong>MIXED_CONTENT_COMPLTIBILITY_MODE</strong> 当涉及到混合式内容时，WebView 会尝试去兼容最新 Web 浏览器的风格；</li>
+</ul>
+<p>在认证证书不被 Android 所接受的情况下，我们可以通过重写<code>WebViewClient#onReceivedSslError()</code> 方法，设置接受所有网站的证书来解决，具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">webView.setWebViewClient(<span class="keyword">new</span> <span class="title class_">WebViewClient</span>() &#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceivedSslError</span><span class="params">(WebView view,</span></span><br><span class="line"><span class="params">            SslErrorHandler handler, SslError error)</span>&#123;</span><br><span class="line">        <span class="comment">// handler.cancel();// Android默认的处理方式</span></span><br><span class="line">        handler.proceed();<span class="comment">// 接受所有网站的证书</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="lt-input-type-x3D-”file”-x2F-gt-标签无效"><a href="#lt-input-type-x3D-”file”-x2F-gt-标签无效" class="headerlink" title="&lt; input type&#x3D;”file” &#x2F;&gt; 标签无效"></a>&lt; input type&#x3D;”file” &#x2F;&gt; 标签无效</h3><p>不同版本 SDK 中的 WebChromeClient 中的回调方法做了多次修改。5.0 以下的 <code>openFileChooser()</code> 有几种重载方法，在 5.0 及以上该方法废弃，回调方法为<code>onShowFileChooser()</code>。一定要注意 <code>ValueCallback&lt; Uri &gt;</code> mFileCallback 和 <code>ValueCallback&lt;Uri[]&gt;</code> mFileCallbacks 一定要执行 <code>onReceiveValue()</code> 方法 ，调用完成后 mFileCallback 和 mFileCallbacks 置为 null。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">webview.setWebChromeClient(<span class="keyword">new</span> <span class="title class_">WebChromeClient</span>() &#123;</span><br><span class="line">    <span class="comment">//  android 3.0以下：用的这个方法</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">openFileChooser</span><span class="params">(ValueCallback&lt;Uri&gt; valueCallback)</span>&#123;</span><br><span class="line">        uploadMessage = valueCallback;</span><br><span class="line">        openImageChooserActivity();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// android 3.0以上，android4.0以下：用的这个方法</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">openFileChooser</span><span class="params">(ValueCallback valueCallback, String acceptType)</span>&#123;</span><br><span class="line">        uploadMessage = valueCallback;</span><br><span class="line">        openImageChooserActivity();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//android 4.0 - android 4.3  安卓4.4.4也用的这个方法</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">openFileChooser</span><span class="params">(ValueCallback&lt;Uri&gt; valueCallback, String acceptType,</span></span><br><span class="line"><span class="params">                    String capture)</span>&#123;</span><br><span class="line">        uploadMessage = valueCallback;</span><br><span class="line">        openImageChooserActivity();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Android 5.0及以上用的这个方法</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">onShowFileChooser</span><span class="params">(WebView webView, ValueCallback&lt;Uri[]&gt;</span></span><br><span class="line"><span class="params">             filePathCallback, WebChromeClient.FileChooserParams fileChooserParams)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="硬件加速导致大图无法显示"><a href="#硬件加速导致大图无法显示" class="headerlink" title="硬件加速导致大图无法显示"></a>硬件加速导致大图无法显示</h3><p>WebView 开启硬件加速时，加载大图无法显示。<code>因为硬件加速中 OpenGL 对于内存是有限制的</code>。如果遇到了这个限制，LogCat 只会报一个 Warning: Bitmap too large to be uploaded into a texture (587x7696, max&#x3D;2048x2048)</p>
+<p>硬件加速的四个级别：</p>
+<ol>
+<li><p>Application 级别<br>android:hardwareAccelerated&#x3D;”true”</p>
+</li>
+<li><p>Activity 级别<br>android:hardwareAccelerated&#x3D;”true”</p>
+</li>
+<li><p>window 级别</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,</span><br><span class="line">                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>View 级别</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">view.setLayerType(View.LAYER_TYPE_HARDWARE, <span class="literal">null</span>);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="WebView-优化"><a href="#WebView-优化" class="headerlink" title="WebView 优化"></a>WebView 优化</h2><h3 id="内存优化"><a href="#内存优化" class="headerlink" title="内存优化"></a>内存优化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 销毁WebView，避免内存泄露.&lt;br/&gt;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> clearCache 是否清空缓存.注意：所有WebView公用缓存.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> &lt;a href=&quot;https://stackoverflow.com/questions/17418503/destroy-webview-in-android&quot;&gt;stackoverflow&lt;/a&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">destroyWebView</span><span class="params">(WebView webView, <span class="type">boolean</span> clearCache)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (webView != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">ViewParent</span> <span class="variable">parent</span> <span class="operator">=</span> webView.getParent();</span><br><span class="line">        <span class="keyword">if</span> (parent != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">//Error: WebView.destroy() called while still attached!</span></span><br><span class="line">            ((ViewGroup) parent).removeView(webView);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        webView.clearHistory();</span><br><span class="line">        <span class="comment">// <span class="doctag">NOTE:</span> clears RAM cache, if you pass true, it will also clear the disk cache.</span></span><br><span class="line">        <span class="comment">// Probably not a great idea to pass true if you have other WebViews still alive.</span></span><br><span class="line">        webView.clearCache(clearCache);</span><br><span class="line">        <span class="comment">// Loading a blank page is optional, but will ensure that the WebView isn&#x27;t doing anything when you destroy it.</span></span><br><span class="line">        <span class="comment">//webView.loadUrl(&quot;about:blank&quot;);</span></span><br><span class="line"></span><br><span class="line">        webView.onPause();</span><br><span class="line">        webView.removeAllViews();</span><br><span class="line">        webView.destroyDrawingCache();</span><br><span class="line"></span><br><span class="line">        webView.destroy();</span><br><span class="line">        webView = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动优化"><a href="#启动优化" class="headerlink" title="启动优化"></a>启动优化</h3><h4 id="前端优化"><a href="#前端优化" class="headerlink" title="前端优化"></a>前端优化</h4><ol>
+<li><strong>降低请求量：</strong> 合并资源，减少 HTTP 请求数，minify &#x2F; gzip 压缩，webP，lazyLoad。</li>
+<li><strong>加快请求速度：</strong> 预解析 DNS，减少域名数，并行加载，CDN 分发。</li>
+<li><strong>缓存：</strong> HTTP 协议缓存请求，离线缓存 manifest，离线数据缓存 localStorage。</li>
+<li><strong>渲染：</strong> JS&#x2F;CSS 优化，加载顺序，服务端渲染，pipeline。</li>
+</ol>
+<h4 id="等页面-finish-再加载图片"><a href="#等页面-finish-再加载图片" class="headerlink" title="等页面 finish 再加载图片"></a>等页面 finish 再加载图片</h4><p>webViewSettings().setLoadsImagesAutomatically(false);&#x2F;&#x2F;默认“true”<br>webViewSettings().setBlockNetworkLoads(false);&#x2F;&#x2F;有网络权限时默认“false”</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">webView.setWebViewClient(<span class="keyword">new</span> <span class="title class_">WebViewClient</span>()&#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onPageFinished</span><span class="params">(WebView view, String url)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(!settings.getLoadsImagesAutomatically()) &#123;</span><br><span class="line">            settings.setLoadsImagesAutomatically(<span class="literal">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="Webview-预加载"><a href="#Webview-预加载" class="headerlink" title="Webview 预加载"></a>Webview 预加载</h4><p>第一步：Webview 预加载。App 启动就初始化一次 WebView。副作用是 WebView 的初始化必须位于主线程，但主线程会阻塞其他业务代码导致 ANR。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">App</span> <span class="keyword">extends</span> <span class="title class_">Application</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="type">WebView</span> <span class="variable">webView</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">WebView</span>(<span class="built_in">this</span>);  <span class="comment">// 无脑初始化一次Webview</span></span><br><span class="line">        webView.destroy();</span><br><span class="line">        webView = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二步：WebView 池。在首次后台创建 WebView 后并不销毁，而是存入备用池，当用户需要时直接取出来使用，这样可以将 WebView 初始化时间降到几乎为 0。<br>副作用是内存占用上，首个 WebView 会占用十几兆内存，非首个 WebView 内存占用 0.2M 左右内存。另外 Android 里 WebView 是和 Activity 进行绑定的，为了避免内存泄露，我们在预先创建的时候，借助 Context 的中间层 MutableContextWrapper，<code>使用 MutableContextWrapper 包裹 applicationContext 的方式去提前创建 WebView</code>，当使用时将 context 置为 activity 的即可。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预创建WebView：</span></span><br><span class="line"><span class="type">MutableContextWrapper</span> <span class="variable">contextWrapper</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MutableContextWrapper</span>(applicationContext);</span><br><span class="line">mPool[<span class="number">0</span>] = <span class="keyword">new</span> <span class="title class_">WebView</span>(contextWrapper);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用WebView</span></span><br><span class="line">((MutableContextWrapper)webview.getContext()).setBaseContext(activityContext);</span><br></pre></td></tr></table></figure>
+
+<h2 id="WebView-定制"><a href="#WebView-定制" class="headerlink" title="WebView 定制"></a>WebView 定制</h2><h3 id="WebSettings-设置"><a href="#WebSettings-设置" class="headerlink" title="WebSettings 设置"></a>WebSettings 设置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">WebSettings</span> <span class="variable">settings</span> <span class="operator">=</span> getSettings();</span><br><span class="line"><span class="comment">// 供 H5 判断是否是在 App 中打开</span></span><br><span class="line">settings.setUserAgentString(<span class="string">&quot;Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0&quot;</span>);</span><br><span class="line"><span class="comment">// 默认false，设置true后我们才能在WebView里与我们的JS代码进行交互</span></span><br><span class="line">settings.setJavaScriptEnabled(<span class="literal">true</span>);</span><br><span class="line"><span class="comment">// 设置JS是否可以打开WebView新窗口</span></span><br><span class="line">settings.setJavaScriptCanOpenWindowsAutomatically(<span class="literal">true</span>);</span><br><span class="line">settings.setSupportZoom(<span class="literal">true</span>); <span class="comment">// 支持缩放</span></span><br><span class="line">settings.setBuiltInZoomControls(<span class="literal">true</span>); <span class="comment">// 支持手势缩放</span></span><br><span class="line">settings.setDisplayZoomControls(<span class="literal">false</span>); <span class="comment">// 不显示缩放按钮</span></span><br><span class="line">settings.setGeolocationEnabled(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//解决url是http但是连接内的图片时https,图片不显示的问题</span></span><br><span class="line"><span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;</span><br><span class="line">    settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">settings.setSaveFormData(<span class="literal">true</span>);</span><br><span class="line">settings.setAppCacheEnabled(<span class="literal">true</span>); <span class="comment">//启用应用缓存</span></span><br><span class="line">settings.setDomStorageEnabled(<span class="literal">true</span>); <span class="comment">//启用或禁用DOM缓存。</span></span><br><span class="line">settings.setDatabaseEnabled(<span class="literal">true</span>); <span class="comment">//启用或禁用数据库缓存。</span></span><br><span class="line">settings.setDatabasePath(<span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="comment">// LOAD_DEFAULT: 默认设置，如果有本地缓存，且缓存有效未过期，则直接使用本地缓存，否则加载网络数据</span></span><br><span class="line"><span class="comment">// LOAD_NORMAL: 废弃</span></span><br><span class="line"><span class="comment">// LOAD_CACHE_ELSE_NETWORK: 如果有本地缓存则直接使用本地缓存，而不管缓存数据是否过期失效，否则加载网络数据</span></span><br><span class="line"><span class="comment">// LOAD_NO_CACHE: 加载网络数据，不使用缓存</span></span><br><span class="line"><span class="comment">// LOAD_CACHE_ONLY: 有本地缓存，加载数据，否则加载失败</span></span><br><span class="line"><span class="keyword">if</span> (isNetworkAvailable()) &#123; <span class="comment">//对Page导航时才有效。比如按返回键回到上一个页面的情况.</span></span><br><span class="line">    <span class="comment">// LOAD_DEFAULT: 默认的使用模式，即支持浏览器缓存机制</span></span><br><span class="line">    settings.setCacheMode(WebSettings.LOAD_DEFAULT);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 不从网络加载数据，只从缓存加载数据。</span></span><br><span class="line">    settings.setCacheMode(WebSettings.LOAD_CACHE_ONLY);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">settings.setUseWideViewPort(<span class="literal">true</span>); <span class="comment">// 将图片调整到适合WebView的大小</span></span><br><span class="line">settings.setLoadWithOverviewMode(<span class="literal">true</span>); <span class="comment">// 自适应屏幕</span></span><br><span class="line">settings.setLoadsImagesAutomatically(<span class="literal">false</span>);<span class="comment">//默认 true</span></span><br><span class="line">settings.setBlockNetworkLoads(<span class="literal">false</span>);<span class="comment">//有网络权限时默认 false</span></span><br><span class="line"></span><br><span class="line">setHorizontalScrollBarEnabled(<span class="literal">false</span>);</span><br><span class="line">setScrollbarFadingEnabled(<span class="literal">true</span>);</span><br><span class="line">setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);</span><br><span class="line"><span class="comment">// 取消 WebView 中滚动或拖动到顶部、底部时的阴影</span></span><br><span class="line">setOverScrollMode(View.OVER_SCROLL_NEVER);</span><br></pre></td></tr></table></figure>
+
+<h3 id="添加进度条"><a href="#添加进度条" class="headerlink" title="添加进度条"></a>添加进度条</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">webView.setWebChromeClient(<span class="keyword">new</span> <span class="title class_">WebChromeClient</span>()&#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onProgressChanged</span><span class="params">(WebView view, <span class="type">int</span> newProgress)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onProgressChanged(view, newProgress);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义错误界面"><a href="#自定义错误界面" class="headerlink" title="自定义错误界面"></a>自定义错误界面</h3><p>需要处理下拉刷新或返回键返回上一页面的问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">webView.setWebViewClient(<span class="keyword">new</span> <span class="title class_">WebViewClient</span>()&#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceivedError</span><span class="params">(WebView view, WebResourceRequest request, WebResourceError error)</span> &#123;</span><br><span class="line">        <span class="comment">//super.onReceivedError(view, request, error);</span></span><br><span class="line">        loadDataWithBaseURL(<span class="literal">null</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;text/html&quot;</span>, <span class="string">&quot;utf-8&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">        view.setVisibility(View.VISIBLE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceivedHttpError</span><span class="params">(WebView view, WebResourceRequest request, WebResourceResponse errorResponse)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onReceivedHttpError(view, request, errorResponse);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceivedSslError</span><span class="params">(WebView view, SslErrorHandler handler, SslError error)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onReceivedSslError(view, handler, error);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="判断是否滚动到页面底端"><a href="#判断是否滚动到页面底端" class="headerlink" title="判断是否滚动到页面底端"></a>判断是否滚动到页面底端</h3><ol>
+<li><p>使用系统的 api 判断。</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (webView.getContentHeight() * webView.getScale() ==</span><br><span class="line">     (webView.getHeight() + webView.getScrollY())) &#123;</span><br><span class="line">    <span class="comment">//滑动到底部</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重写 WebView#onScrollChanged() 方法处理。</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onScrollChanged</span><span class="params">(<span class="type">int</span> l, <span class="type">int</span> t, <span class="type">int</span> oldl, <span class="type">int</span> oldt)</span> &#123;</span><br><span class="line">    <span class="built_in">super</span>.onScrollChanged(l, t, oldl, oldt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="判断是否存在垂直滚动条"><a href="#判断是否存在垂直滚动条" class="headerlink" title="判断是否存在垂直滚动条"></a>判断是否存在垂直滚动条</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">existVerticalScrollbar</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> computeVerticalScrollRange() &gt; computeVerticalScrollExtent();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>computeVerticalScrollRange()</code> 得到的是可滑动的最大高度，<code>computeVerticalScrollExtent()</code> 得到的是滚动把手自身的高，当不存在滚动条时，两者的值是相等的。当有滚动条时前者一定是大于后者的。</p>
+<h3 id="使用网页的标题设置标题栏"><a href="#使用网页的标题设置标题栏" class="headerlink" title="使用网页的标题设置标题栏"></a>使用网页的标题设置标题栏</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">WebChromeClient</span> <span class="variable">mWebChromeClient</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">WebChromeClient</span>() &#123;</span><br><span class="line">   <span class="meta">@Override</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onReceivedTitle</span><span class="params">(WebView view, String title)</span>&#123;</span><br><span class="line">       <span class="built_in">super</span>.onReceivedTitle(view, title);</span><br><span class="line">       txtTitle.setText(title);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;;</span><br><span class="line">mWedView.setWebChromeClient(mWebChromeClient());</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>有的页面没有标题，可以设置一个默认标题；</li>
+<li>WebView#goBack() 方法不一定调用，标题不更新。通过 HashMap 保存 url 和 title 的对应关系。</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://x5.tencent.com/tbs/index.html">[1] 腾讯浏览器服务(TBS、 x5)</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/View/" rel="tag"># View</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/02/10/Android-Adb-%E5%91%BD%E4%BB%A4%E4%B9%8B-logcat/" rel="prev" title="Android Adb 命令之 logcat">
+                  <i class="fa fa-chevron-left"></i> Android Adb 命令之 logcat
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/03/05/Android-AsyncTask/" rel="next" title="Android AsyncTask">
+                  Android AsyncTask <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

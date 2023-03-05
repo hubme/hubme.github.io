@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ArrayMap 是一种键值映射的数据结构，比 HashMap 更节省内存。它通过数组来存储映射关系，一个 int 数组存储 key 的 hash code，一个 Object 数组存储 key 和 value，可以避免在插入元素到 map 时创建额外的对象。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android ArrayMap">
+<meta property="og:url" content="http://example.com/2018/10/05/Android-ArrayMap/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="ArrayMap 是一种键值映射的数据结构，比 HashMap 更节省内存。它通过数组来存储映射关系，一个 int 数组存储 key 的 hash code，一个 Object 数组存储 key 和 value，可以避免在插入元素到 map 时创建额外的对象。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_uml.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_structure.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_cache1.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_cache2.png">
+<meta property="article:published_time" content="2018-10-05T15:55:01.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.115Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="MVC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_uml.png">
+
+
+<link rel="canonical" href="http://example.com/2018/10/05/Android-ArrayMap/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2018/10/05/Android-ArrayMap/","path":"2018/10/05/Android-ArrayMap/","title":"Android ArrayMap"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android ArrayMap | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">类结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">构造方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%95%B0%E6%8D%AE"><span class="nav-number">3.</span> <span class="nav-text">添加数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E6%95%B0%E6%8D%AE"><span class="nav-number">4.</span> <span class="nav-text">查找数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE"><span class="nav-number">5.</span> <span class="nav-text">删除数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6"><span class="nav-number">6.</span> <span class="nav-text">缓存机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">7.</span> <span class="nav-text">相关的数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/10/05/Android-ArrayMap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android ArrayMap | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android ArrayMap
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-10-05 23:55:01" itemprop="dateCreated datePublished" datetime="2018-10-05T23:55:01+08:00">2018-10-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>ArrayMap 是一种键值映射的数据结构，<code>比 HashMap 更节省内存</code>。它通过数组来存储映射关系，<code>一个 int 数组存储 key 的 hash code，一个 Object 数组存储 key 和 value</code>，可以避免在插入元素到 map 时创建额外的对象。</p>
+<span id="more"></span>
+
+<ol>
+<li>ArrayMap 和 HashMap 类似。HashMap 是以空间换时间，ArrayMap 是以时间换空间。</li>
+<li>节省内存。缓存机制（缓存 4 和 8 时的数组）。</li>
+<li>非线程安全；</li>
+<li>二分查找；</li>
+<li>扩容机制。4 -&gt; 8 -&gt; 8+8&#x2F;2&#x3D;12 -&gt; 12+12&#x2F;2&#x3D;18</li>
+</ol>
+<blockquote>
+<p>基于 androidx.collection:collection:1.1.0.</p>
+</blockquote>
+<h2 id="类结构"><a href="#类结构" class="headerlink" title="类结构"></a>类结构</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">Base implementation of ArrayMap that doesn&#x27;t include any standard Java container API interoperability.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleArrayMap</span>&lt;K, V&gt; &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">ArrayMap is a generic key-&gt;value mapping data structure</span></span><br><span class="line"><span class="comment">that is designed to be more memory efficient than a traditional java.util.HashMap,</span></span><br><span class="line"><span class="comment">this implementation is a version of the platform&#x27;s android.util.ArrayMap</span></span><br><span class="line"><span class="comment">that can be used on older versions of the platform.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ArrayMap</span>&lt;K, V&gt; <span class="keyword">extends</span> <span class="title class_">SimpleArrayMap</span>&lt;K, V&gt;</span><br><span class="line">    <span class="keyword">implements</span> <span class="title class_">Map</span>&lt;K, V&gt; &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_uml.png" alt="arraymap_uml"><br><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_structure.png" alt="arraymap_structure"></p>
+<ul>
+<li>mHashes 记录所有 key 的 hashcode 值组成的数组，<code>从小到大</code>排序，使用二分查找；</li>
+<li>mArray 是一个记录着 key-value 键值对所组成的数组，是 mHashes 大小的 2 倍；</li>
+</ul>
+<h2 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Create a new empty ArrayMap.  The default capacity of an array map is 0, and</span></span><br><span class="line"><span class="comment">* will grow once items are added to it.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">SimpleArrayMap</span><span class="params">()</span> &#123;</span><br><span class="line">    mHashes = ContainerHelpers.EMPTY_INTS;</span><br><span class="line">    mArray = ContainerHelpers.EMPTY_OBJECTS;</span><br><span class="line">    mSize = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Create a new ArrayMap with a given initial capacity.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">SimpleArrayMap</span><span class="params">(<span class="type">int</span> capacity)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (capacity == <span class="number">0</span>) &#123;</span><br><span class="line">        mHashes = ContainerHelpers.EMPTY_INTS;</span><br><span class="line">        mArray = ContainerHelpers.EMPTY_OBJECTS;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        allocArrays(capacity);</span><br><span class="line">    &#125;</span><br><span class="line">    mSize = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Create a new ArrayMap with the mappings from the given ArrayMap.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">SimpleArrayMap</span><span class="params">(SimpleArrayMap&lt;K, V&gt; map)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>();</span><br><span class="line">    <span class="keyword">if</span> (map != <span class="literal">null</span>) &#123;</span><br><span class="line">        putAll(map);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>默认的构造函数不分配内存，添加数据时根据需要分配，也可以在初始化时指定 ArrayMap 的大小，此时会分配内存。</p>
+<h2 id="添加数据"><a href="#添加数据" class="headerlink" title="添加数据"></a>添加数据</h2><ol>
+<li>V put(K key, V value)</li>
+<li>V putIfAbsent(K key, V value)</li>
+<li>void putAll(@NonNull SimpleArrayMap&lt;? extends K, ? extends V&gt; array)</li>
+</ol>
+<p>key 可以为 null，但是至多有一个 null key。如果 key 不存在，返回 null, 否则返回旧 value。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">Add a new value to the array map.</span></span><br><span class="line"><span class="comment">key – The key under which to store the value. Must not be null. If this key already exists in the array, its value will be replaced.</span></span><br><span class="line"><span class="comment">value – The value to store for the given key.</span></span><br><span class="line"><span class="comment">Returns the old value that was stored for the given key, or null if there was no such key.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="keyword">public</span> V <span class="title function_">put</span><span class="params">(K key, V value)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">osize</span> <span class="operator">=</span> mSize;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> hash;</span><br><span class="line">    <span class="type">int</span> index;</span><br><span class="line">    <span class="comment">//key 为 null, hash 始终为 0，所以只能保存一条记录。</span></span><br><span class="line">    <span class="keyword">if</span> (key == <span class="literal">null</span>) &#123;</span><br><span class="line">        hash = <span class="number">0</span>;</span><br><span class="line">        index = indexOfNull();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// key 不为空，计算 key 的 hash 值</span></span><br><span class="line">        hash = key.hashCode();</span><br><span class="line">        <span class="comment">// 查找元素在 mHashes 数组中的位置</span></span><br><span class="line">        index = indexOf(key, hash);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//key 存在，返回旧值。</span></span><br><span class="line">    <span class="keyword">if</span> (index &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        index = (index&lt;&lt;<span class="number">1</span>) + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">V</span> <span class="variable">old</span> <span class="operator">=</span> (V)mArray[index];</span><br><span class="line">        mArray[index] = value;</span><br><span class="line">        <span class="keyword">return</span> old;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    index = ~index;</span><br><span class="line">    <span class="comment">//第一次添加数据或容量已满时扩容</span></span><br><span class="line">    <span class="keyword">if</span> (osize &gt;= mHashes.length) &#123;</span><br><span class="line">        <span class="comment">//4, 8, 8+8/2=12, 12+12/2=18</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> osize &gt;= (BASE_SIZE*<span class="number">2</span>) ? (osize+(osize&gt;&gt;<span class="number">1</span>))</span><br><span class="line">                : (osize &gt;= BASE_SIZE ? (BASE_SIZE*<span class="number">2</span>) : BASE_SIZE);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="type">int</span>[] ohashes = mHashes;</span><br><span class="line">        <span class="keyword">final</span> Object[] oarray = mArray;</span><br><span class="line">        allocArrays(n);<span class="comment">//分配内存</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//把旧数组中的数据复制到新数组中</span></span><br><span class="line">        <span class="keyword">if</span> (mHashes.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            System.arraycopy(ohashes, <span class="number">0</span>, mHashes, <span class="number">0</span>, ohashes.length);</span><br><span class="line">            System.arraycopy(oarray, <span class="number">0</span>, mArray, <span class="number">0</span>, oarray.length);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//释放旧数组内存，回收 4 和 8 的数组</span></span><br><span class="line">        freeArrays(ohashes, oarray, osize);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//插入元素，需要将index位置后的数据通过拷贝往后移动一位</span></span><br><span class="line">    <span class="keyword">if</span> (index &lt; osize) &#123;</span><br><span class="line">        System.arraycopy(mHashes, index, mHashes, index + <span class="number">1</span>, osize - index);</span><br><span class="line">        System.arraycopy(mArray, index &lt;&lt; <span class="number">1</span>, mArray, (index + <span class="number">1</span>) &lt;&lt; <span class="number">1</span>, (mSize - index) &lt;&lt; <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//添加数据，size 加 1，返回 null</span></span><br><span class="line">    mHashes[index] = hash;</span><br><span class="line">    mArray[index&lt;&lt;<span class="number">1</span>] = key;</span><br><span class="line">    mArray[(index&lt;&lt;<span class="number">1</span>)+<span class="number">1</span>] = value;</span><br><span class="line">    mSize++;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="查找数据"><a href="#查找数据" class="headerlink" title="查找数据"></a>查找数据</h2><ol>
+<li>V get(Object key)</li>
+<li>V getOrDefault(Object key, V defaultValue)</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="keyword">public</span> V <span class="title function_">get</span><span class="params">(Object key)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> getOrDefault(key, <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> V <span class="title function_">getOrDefault</span><span class="params">(Object key, V defaultValue)</span> &#123;</span><br><span class="line">    <span class="comment">//获取在 mHashes 数组中的索引</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> indexOfKey(key);</span><br><span class="line">    <span class="comment">//index &lt; 0 返回默认值；否则返回在 mArray 数组中的值</span></span><br><span class="line">    <span class="keyword">return</span> index &gt;= <span class="number">0</span> ? (V) mArray[(index &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>] : defaultValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要是通过二分查找得到 key 在 mHashes 数组中的位置 index，再根据 index 在 mArray 数组中得到查找的值。</p>
+<h2 id="删除数据"><a href="#删除数据" class="headerlink" title="删除数据"></a>删除数据</h2><ol>
+<li>V remove(Object key)</li>
+<li>boolean remove(Object key, Object value)</li>
+<li>V removeAt(int index)</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Remove the key/value mapping at the given index.</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> index The desired index, must be between 0 and &#123;<span class="doctag">@link</span> #size()&#125;-1.</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span> Returns the value that was stored at this index.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> V <span class="title function_">removeAt</span><span class="params">(<span class="type">int</span> index)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">old</span> <span class="operator">=</span> mArray[(index &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>];</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> <span class="variable">osize</span> <span class="operator">=</span> mSize;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">int</span> nsize;</span><br><span class="line">    <span class="comment">//只有一条记录</span></span><br><span class="line">    <span class="keyword">if</span> (osize &lt;= <span class="number">1</span>) &#123;</span><br><span class="line">        freeArrays(mHashes, mArray, osize);</span><br><span class="line">        mHashes = ContainerHelpers.EMPTY_INTS;</span><br><span class="line">        mArray = ContainerHelpers.EMPTY_OBJECTS;</span><br><span class="line">        nsize = <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        nsize = osize - <span class="number">1</span>;</span><br><span class="line">        <span class="comment">//容量大于 8，而且数据量小于容量的 1/3 时，回收内存</span></span><br><span class="line">        <span class="keyword">if</span> (mHashes.length &gt; (BASE_SIZE*<span class="number">2</span>) &amp;&amp; mSize &lt; mHashes.length/<span class="number">3</span>) &#123;</span><br><span class="line">            <span class="comment">// Shrunk enough to reduce size of arrays.  We don&#x27;t allow it to</span></span><br><span class="line">            <span class="comment">// shrink smaller than (BASE_SIZE*2) to avoid flapping between</span></span><br><span class="line">            <span class="comment">// that and BASE_SIZE.</span></span><br><span class="line">            <span class="comment">//计算需要的容量，最小容量为 8，可以避免从 4 到 8 扩容</span></span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span> <span class="variable">n</span> <span class="operator">=</span> osize &gt; (BASE_SIZE*<span class="number">2</span>) ? (osize + (osize&gt;&gt;<span class="number">1</span>)) : (BASE_SIZE*<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">final</span> <span class="type">int</span>[] ohashes = mHashes;</span><br><span class="line">            <span class="keyword">final</span> Object[] oarray = mArray;</span><br><span class="line">            <span class="comment">// 分配更小容量的数组</span></span><br><span class="line">            allocArrays(n);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//复制数据到新数组</span></span><br><span class="line">            <span class="keyword">if</span> (index &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                System.arraycopy(ohashes, <span class="number">0</span>, mHashes, <span class="number">0</span>, index);</span><br><span class="line">                System.arraycopy(oarray, <span class="number">0</span>, mArray, <span class="number">0</span>, index &lt;&lt; <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (index &lt; nsize) &#123;</span><br><span class="line">                System.arraycopy(ohashes, index + <span class="number">1</span>, mHashes, index, nsize - index);</span><br><span class="line">                System.arraycopy(oarray, (index + <span class="number">1</span>) &lt;&lt; <span class="number">1</span>, mArray, index &lt;&lt; <span class="number">1</span>,</span><br><span class="line">                        (nsize - index) &lt;&lt; <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//当被移除的元素不是数组最末尾的元素时，则需要将后面的数组往前移动</span></span><br><span class="line">            <span class="keyword">if</span> (index &lt; nsize) &#123;</span><br><span class="line">                System.arraycopy(mHashes, index + <span class="number">1</span>, mHashes, index, nsize - index);</span><br><span class="line">                System.arraycopy(mArray, (index + <span class="number">1</span>) &lt;&lt; <span class="number">1</span>, mArray, index &lt;&lt; <span class="number">1</span>,</span><br><span class="line">                        (nsize - index) &lt;&lt; <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//删除旧值</span></span><br><span class="line">            mArray[nsize &lt;&lt; <span class="number">1</span>] = <span class="literal">null</span>;</span><br><span class="line">            mArray[(nsize &lt;&lt; <span class="number">1</span>) + <span class="number">1</span>] = <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    mSize = nsize;</span><br><span class="line">    <span class="keyword">return</span> (V)old;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="缓存机制"><a href="#缓存机制" class="headerlink" title="缓存机制"></a>缓存机制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//只缓存长度是 4 和 8 的数组</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">BASE_SIZE</span> <span class="operator">=</span> <span class="number">4</span>;</span><br><span class="line"><span class="comment">//最大缓存数量，避免无限缓存</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">CACHE_SIZE</span> <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line"><span class="comment">//静态变量，所有实例共享</span></span><br><span class="line"><span class="keyword">static</span> <span class="meta">@Nullable</span> Object[] mBaseCache;</span><br><span class="line"><span class="keyword">static</span> <span class="type">int</span> mBaseCacheSize;</span><br><span class="line"><span class="keyword">static</span> <span class="meta">@Nullable</span> Object[] mTwiceBaseCache;</span><br><span class="line"><span class="keyword">static</span> <span class="type">int</span> mTwiceBaseCacheSize;</span><br><span class="line"></span><br><span class="line"><span class="comment">//如果存在一倍或二倍缓存，则直接使用缓存，否则使用创建新数组。</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">allocArrays</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span> size)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (size == (BASE_SIZE*<span class="number">2</span>)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (SimpleArrayMap.class) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mTwiceBaseCache != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">final</span> Object[] array = mTwiceBaseCache;</span><br><span class="line">                mArray = array;</span><br><span class="line">                mTwiceBaseCache = (Object[])array[<span class="number">0</span>];</span><br><span class="line">                mHashes = (<span class="type">int</span>[])array[<span class="number">1</span>];</span><br><span class="line">                array[<span class="number">0</span>] = array[<span class="number">1</span>] = <span class="literal">null</span>;</span><br><span class="line">                mTwiceBaseCacheSize--;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (size == BASE_SIZE) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (SimpleArrayMap.class) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mBaseCache != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">final</span> Object[] array = mBaseCache;</span><br><span class="line">                mArray = array;</span><br><span class="line">                mBaseCache = (Object[])array[<span class="number">0</span>];</span><br><span class="line">                mHashes = (<span class="type">int</span>[])array[<span class="number">1</span>];</span><br><span class="line">                array[<span class="number">0</span>] = array[<span class="number">1</span>] = <span class="literal">null</span>;</span><br><span class="line">                mBaseCacheSize--;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mHashes = <span class="keyword">new</span> <span class="title class_">int</span>[size];</span><br><span class="line">    mArray = <span class="keyword">new</span> <span class="title class_">Object</span>[size&lt;&lt;<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//只缓存容量为 4 和 8 的数组。其他容量的数组由 GC 回收。</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">freeArrays</span><span class="params">(<span class="keyword">final</span> <span class="type">int</span>[] hashes, <span class="keyword">final</span> Object[] array, <span class="keyword">final</span> <span class="type">int</span> size)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (hashes.length == (BASE_SIZE*<span class="number">2</span>)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (SimpleArrayMap.class) &#123;</span><br><span class="line">            <span class="comment">//缓存未满</span></span><br><span class="line">            <span class="keyword">if</span> (mTwiceBaseCacheSize &lt; CACHE_SIZE) &#123;</span><br><span class="line">                <span class="comment">//array[0]指向原来的缓存池</span></span><br><span class="line">                array[<span class="number">0</span>] = mTwiceBaseCache;</span><br><span class="line">                array[<span class="number">1</span>] = hashes;</span><br><span class="line">                <span class="comment">//释放剩余的内存空间</span></span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> i=(size&lt;&lt;<span class="number">1</span>)-<span class="number">1</span>; i&gt;=<span class="number">2</span>; i--) &#123;</span><br><span class="line">                    array[i] = <span class="literal">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//mTwiceBaseCache指向新加入缓存池的array</span></span><br><span class="line">                mTwiceBaseCache = array;</span><br><span class="line">                mTwiceBaseCacheSize++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (hashes.length == BASE_SIZE) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (SimpleArrayMap.class) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mBaseCacheSize &lt; CACHE_SIZE) &#123;</span><br><span class="line">                array[<span class="number">0</span>] = mBaseCache;</span><br><span class="line">                array[<span class="number">1</span>] = hashes;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> i=(size&lt;&lt;<span class="number">1</span>)-<span class="number">1</span>; i&gt;=<span class="number">2</span>; i--) &#123;</span><br><span class="line">                    array[i] = <span class="literal">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                mBaseCache = array;</span><br><span class="line">                mBaseCacheSize++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缓存的第一条元素缓存 key-value 数组，第二条元素缓存 hash 数组。</p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_cache1.png" alt="arraymap_cache1"><br><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/arraymap_cache2.png" alt="arraymap_cache2"></p>
+<h2 id="相关的数据结构"><a href="#相关的数据结构" class="headerlink" title="相关的数据结构"></a>相关的数据结构</h2><ol>
+<li>ArraySet</li>
+<li>SparseArray&#x2F;SparseBooleanArray&#x2F;SparseIntArray</li>
+<li>LongSparseArray</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="http://gityuan.com/2019/01/13/arraymap/">[1] 深度解读 ArrayMap 优势与缺陷 - Gityuan</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MVC/" rel="tag"># MVC</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/09/26/Android-Native-%E5%92%8C-H5-%E4%BA%A4%E4%BA%92/" rel="prev" title="Android Native 和 H5 交互">
+                  <i class="fa fa-chevron-left"></i> Android Native 和 H5 交互
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/10/09/JVM-%E5%92%8C-Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="next" title="JVM 和 Dalvik 虚拟机">
+                  JVM 和 Dalvik 虚拟机 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

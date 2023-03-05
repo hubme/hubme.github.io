@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="AIDL（Android Interface Definition Language） 是 Android 系统提供的进程间通信方式，底层是根据 Binder 机制实现，是对上层代码的封装。Android 的系统服务基本上都是通过 AIDL 实现的，比如 AMS 通过 IApplicationThread.aidl 实现，WMS 通过 IWindowManager.aidl 实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 通过 AIDL 实现进程间通信">
+<meta property="og:url" content="http://example.com/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="AIDL（Android Interface Definition Language） 是 Android 系统提供的进程间通信方式，底层是根据 Binder 机制实现，是对上层代码的封装。Android 的系统服务基本上都是通过 AIDL 实现的，比如 AMS 通过 IApplicationThread.aidl 实现，WMS 通过 IWindowManager.aidl 实现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-02T08:46:04.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Binder">
+<meta property="article:tag" content="AIDL">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/","path":"2021/02/02/Android-通过-AIDL-实现进程间通信/","title":"Android 通过 AIDL 实现进程间通信"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android 通过 AIDL 实现进程间通信 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">示例代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/Android-%E9%80%9A%E8%BF%87-AIDL-%E5%AE%9E%E7%8E%B0%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android 通过 AIDL 实现进程间通信 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android 通过 AIDL 实现进程间通信
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-02 16:46:04" itemprop="dateCreated datePublished" datetime="2021-02-02T16:46:04+08:00">2021-02-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/IPC/" itemprop="url" rel="index"><span itemprop="name">IPC</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>AIDL（Android Interface Definition Language） 是 Android 系统提供的进程间通信方式，底层是根据 Binder 机制实现，是对上层代码的封装。<br>Android 的系统服务基本上都是通过 AIDL 实现的，比如 AMS 通过 IApplicationThread.aidl 实现，WMS 通过 IWindowManager.aidl 实现。</p>
+<span id="more"></span>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><p>源码请看 <a target="_blank" rel="noopener" href="https://github.com/hubme/AidlSample">Github</a>。</p>
+<p><strong>1. 在 app&#x2F;src&#x2F;main&#x2F;aidl&#x2F;com.app.aidlsample 目录下创建 IRemoteService.aidl 文件，声明服务方法：</strong></p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 注意写上包名，不然会找不到生成的 IRemoteAidl 类</span><br><span class="line">package com.app.aidlsample;</span><br><span class="line"></span><br><span class="line">interface IRemoteAidl&#123;</span><br><span class="line">    String search(String key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>点击 Build &gt; Rebuild Project 后，会在 build&#x2F;generated&#x2F;aidl_source_output_dir&#x2F;debug&#x2F;out&#x2F;com.app.aidlsample 文件夹下生成和 IRemoteAidl.aidl 文件对应的 IRemoteAidl.java 文件。该文件是通过 Gradle 的 <code>Task :app:compileDebugAidl</code> 任务生成的。</p>
+<p><strong>2. 创建服务：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RemoteAidlService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG</span> <span class="operator">=</span> <span class="string">&quot;IRemoteAidl&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> IBinder <span class="title function_">onBind</span><span class="params">(Intent intent)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">AAA</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">AAA</span> <span class="keyword">extends</span> <span class="title class_">IRemoteAidl</span>.Stub &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">search</span><span class="params">(String key)</span> <span class="keyword">throws</span> RemoteException &#123;</span><br><span class="line">            Log.i(TAG, <span class="string">&quot;search。Key: &quot;</span> + key + <span class="string">&quot;, Thread: &quot;</span> + Thread.currentThread());</span><br><span class="line">            SystemClock.sleep(<span class="number">2000</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Hello, &quot;</span> + key;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 AndroidManifest.xml 配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">service</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;.RemoteAidlService&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:process</span>=<span class="string">&quot;:remote&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>android:process=&quot;:remote&quot;</code> 说明 RemoteAidlService 服务运行在子进程。</p>
+<p><strong>3. 绑定服务，调用远程服务：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MainActivity</span> <span class="keyword">extends</span> <span class="title class_">AppCompatActivity</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG</span> <span class="operator">=</span> <span class="string">&quot;IRemoteAidl&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> IRemoteAidl mRemoteAidlService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">(Bundle savedInstanceState)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        <span class="type">Intent</span> <span class="variable">intent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>(<span class="built_in">this</span>, RemoteAidlService.class);</span><br><span class="line">        bindService(intent, <span class="keyword">new</span> <span class="title class_">ServiceConnection</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onServiceConnected</span><span class="params">(ComponentName componentName, IBinder iBinder)</span> &#123;</span><br><span class="line">                Log.i(TAG, <span class="string">&quot;onServiceConnected. componentName: &quot;</span> + componentName + <span class="string">&quot; iBinder: &quot;</span> + iBinder);</span><br><span class="line">                mRemoteAidlService = IRemoteAidl.Stub.asInterface(iBinder);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onServiceDisconnected</span><span class="params">(ComponentName componentName)</span> &#123;</span><br><span class="line">                Log.i(TAG, <span class="string">&quot;onServiceDisconnected. componentName: &quot;</span> + componentName);</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, Context.BIND_AUTO_CREATE);</span><br><span class="line"></span><br><span class="line">        findViewById(R.id.tv_search).setOnClickListener(<span class="keyword">new</span> <span class="title class_">View</span>.OnClickListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onClick</span><span class="params">(View view)</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (mRemoteAidlService != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        <span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> mRemoteAidlService.search(<span class="string">&quot;World!&quot;</span>);</span><br><span class="line">                        Log.i(TAG, <span class="string">&quot;From Remote Service: &quot;</span> + result + <span class="string">&quot;, Thread: &quot;</span> + Thread.currentThread());</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">                        e.printStackTrace();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Log 如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">16</span>:<span class="number">11</span>:<span class="number">18.573</span> I/IRemoteAidl: onServiceConnected. componentName: ComponentInfo&#123;com.app.aidlsample/com.app.aidlsample.RemoteAidlService&#125; iBinder: android.os.BinderProxy<span class="meta">@f4e8c9e</span></span><br><span class="line"><span class="number">16</span>:<span class="number">11</span>:<span class="number">20.563</span> I/IRemoteAidl: search。Key: World!, Thread: Thread[Binder:<span class="number">18797_1</span>,<span class="number">5</span>,main]</span><br><span class="line"><span class="number">16</span>:<span class="number">11</span>:<span class="number">22.565</span> I/IRemoteAidl: From Remote Service: Hello, World!, Thread: Thread[main,<span class="number">5</span>,main]</span><br></pre></td></tr></table></figure>
+
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.app.aidlsample;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">IRemoteAidl</span> <span class="keyword">extends</span> <span class="title class_">android</span>.os.IInterface &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Default</span> <span class="keyword">implements</span> <span class="title class_">com</span>.app.aidlsample.IRemoteAidl &#123;</span><br><span class="line">        <span class="comment">/** Default implementation for IRemoteAidl. */</span></span><br><span class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> java.lang.String <span class="title function_">search</span><span class="params">(java.lang.String key)</span> <span class="keyword">throws</span> android.os.RemoteException &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> android.os.IBinder <span class="title function_">asBinder</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/** Local-side IPC implementation stub class. */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Stub</span> <span class="keyword">extends</span> <span class="title class_">android</span>.os.Binder <span class="keyword">implements</span> <span class="title class_">com</span>.app.aidlsample.IRemoteAidl &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> java.lang.<span class="type">String</span> <span class="variable">DESCRIPTOR</span> <span class="operator">=</span> <span class="string">&quot;com.app.aidlsample.IRemoteAidl&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">Stub</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.attachInterface(<span class="built_in">this</span>, DESCRIPTOR);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Cast an IBinder object into an com.app.aidlsample.IRemoteAidl interface,</span></span><br><span class="line"><span class="comment">         * generating a proxy if needed.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> com.app.aidlsample.IRemoteAidl <span class="title function_">asInterface</span><span class="params">(android.os.IBinder obj)</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> ((obj==<span class="literal">null</span>)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            android.os.<span class="type">IInterface</span> <span class="variable">iin</span> <span class="operator">=</span> obj.queryLocalInterface(DESCRIPTOR);</span><br><span class="line">            <span class="keyword">if</span> (((iin!=<span class="literal">null</span>)&amp;&amp;(iin <span class="keyword">instanceof</span> com.app.aidlsample.IRemoteAidl))) &#123;</span><br><span class="line">                <span class="keyword">return</span> ((com.app.aidlsample.IRemoteAidl)iin);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">com</span>.app.aidlsample.IRemoteAidl.Stub.Proxy(obj);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> android.os.IBinder <span class="title function_">asBinder</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">onTransact</span><span class="params">(<span class="type">int</span> code, android.os.Parcel data, android.os.Parcel reply, <span class="type">int</span> flags)</span> <span class="keyword">throws</span> android.os.RemoteException &#123;</span><br><span class="line">            java.lang.<span class="type">String</span> <span class="variable">descriptor</span> <span class="operator">=</span> DESCRIPTOR;</span><br><span class="line">            <span class="keyword">switch</span> (code) &#123;</span><br><span class="line">                <span class="keyword">case</span> INTERFACE_TRANSACTION: &#123;</span><br><span class="line">                    reply.writeString(descriptor);</span><br><span class="line">                    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">case</span> TRANSACTION_search: &#123;</span><br><span class="line">                    data.enforceInterface(descriptor);</span><br><span class="line">                    java.lang.String _arg0;</span><br><span class="line">                    _arg0 = data.readString();</span><br><span class="line">                    java.lang.<span class="type">String</span> <span class="variable">_result</span> <span class="operator">=</span> <span class="built_in">this</span>.search(_arg0);</span><br><span class="line">                    reply.writeNoException();</span><br><span class="line">                    reply.writeString(_result);</span><br><span class="line">                    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">default</span>: &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="built_in">super</span>.onTransact(code, data, reply, flags);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Proxy</span> <span class="keyword">implements</span> <span class="title class_">com</span>.app.aidlsample.IRemoteAidl &#123;</span><br><span class="line">            <span class="keyword">private</span> android.os.IBinder mRemote;</span><br><span class="line"></span><br><span class="line">            Proxy(android.os.IBinder remote) &#123;</span><br><span class="line">                mRemote = remote;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="meta">@Override</span> <span class="keyword">public</span> android.os.IBinder <span class="title function_">asBinder</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> mRemote;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">public</span> java.lang.String <span class="title function_">getInterfaceDescriptor</span><span class="params">()</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> DESCRIPTOR;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="meta">@Override</span> <span class="keyword">public</span> java.lang.String <span class="title function_">search</span><span class="params">(java.lang.String key)</span> <span class="keyword">throws</span> android.os.RemoteException &#123;</span><br><span class="line">                android.os.<span class="type">Parcel</span> <span class="variable">_data</span> <span class="operator">=</span> android.os.Parcel.obtain();</span><br><span class="line">                android.os.<span class="type">Parcel</span> <span class="variable">_reply</span> <span class="operator">=</span> android.os.Parcel.obtain();</span><br><span class="line">                java.lang.String _result;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    _data.writeInterfaceToken(DESCRIPTOR);</span><br><span class="line">                    _data.writeString(key);</span><br><span class="line">                    <span class="type">boolean</span> <span class="variable">_status</span> <span class="operator">=</span> mRemote.transact(Stub.TRANSACTION_search, _data, _reply, <span class="number">0</span>);</span><br><span class="line">                    <span class="keyword">if</span> (!_status &amp;&amp; getDefaultImpl() != <span class="literal">null</span>) &#123;</span><br><span class="line">                        <span class="keyword">return</span> getDefaultImpl().search(key);</span><br><span class="line">                    &#125;</span><br><span class="line">                    _reply.readException();</span><br><span class="line">                    _result = _reply.readString();</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    _reply.recycle();</span><br><span class="line">                    _data.recycle();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> _result;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">static</span> com.app.aidlsample.IRemoteAidl sDefaultImpl;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">TRANSACTION_search</span> <span class="operator">=</span> (android.os.IBinder.FIRST_CALL_TRANSACTION + <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">setDefaultImpl</span><span class="params">(com.app.aidlsample.IRemoteAidl impl)</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (Stub.Proxy.sDefaultImpl != <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;setDefaultImpl() called twice&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (impl != <span class="literal">null</span>) &#123;</span><br><span class="line">                Stub.Proxy.sDefaultImpl = impl;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">static</span> com.app.aidlsample.IRemoteAidl <span class="title function_">getDefaultImpl</span><span class="params">()</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> Stub.Proxy.sDefaultImpl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> java.lang.String <span class="title function_">search</span><span class="params">(java.lang.String key)</span> <span class="keyword">throws</span> android.os.RemoteException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>IBinder</strong> : IBinder 是一个接口，代表了一种跨进程通信的能力。只要实现了这个借口，这个对象就能跨进程传输。</li>
+<li><strong>IInterface</strong> : IInterface 代表的就是 Server 进程对象具备什么样的能力（能提供哪些方法，其实对应的就是 AIDL 文件中定义的接口）</li>
+<li><strong>Binder</strong> : Java 层的 Binder 类，代表的其实就是 Binder 本地对象，BinderProxy 代表远程进程的 Binder 对象的本地代理；这两个类都继承自 IBinder, 因而都具有跨进程传输的能力；实际上，在跨越进程的时候，Binder 驱动会自动完成这两个对象的转换。</li>
+<li><strong>Stub</strong> : 是一个抽象类,类继承了 Binder, 说明它是一个 Binder 本地对象，它实现了 IInterface 接口，表明它具有 Server 承诺给 Client 的能力；具体的 IInterface 的相关实现需要服务端实现。</li>
+<li><strong>Default</strong>：服务的默认实现。</li>
+</ul>
+<blockquote>
+<p>AIDL 总是那么一种固定的模式：一个需要跨进程传递的对象一定继承自 IBinder，如果是 Binder 本地对象，那么一定继承 Binder 实现 IInterface，如果是代理对象，那么就实现了 IInterface 并持有了 IBinder 引用；</p>
+</blockquote>
+<p>跨进程通信流程如下：</p>
+<ol>
+<li>Client 通过 Binder 代理对象调用远程服务，Client 线程挂起阻塞；</li>
+<li>Binder 代理对象将请求派发给 Binder 驱动；</li>
+<li>Binder 驱动再将请求派发给 Server 端，Server 端处理后将结果返回给 Binder 驱动；</li>
+<li>唤醒 Client 线程，返回结果给 Client；</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>AIDL 通过 aidl 文件生成了一个接口，接口中的 <code>Stub 类用于服务端</code>，<code>Proxy 类用于服务代理</code> 。通过继承 Stub 实现服务端，很大程度上简化 Android 进程间通信。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://developer.android.com/guide/components/aidl?hl=zh-cn">[1] Android 接口定义语言 (AIDL)</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1095486">[2] 写给 Android 应用工程师的 Binder 原理剖析</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Binder/" rel="tag"># Binder</a>
+              <a href="/tags/AIDL/" rel="tag"># AIDL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/05/02/Android-Handler-%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/" rel="prev" title="Android Handler 消息机制">
+                  <i class="fa fa-chevron-left"></i> Android Handler 消息机制
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/08/Android-Parcel/" rel="next" title="Android Parcel">
+                  Android Parcel <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

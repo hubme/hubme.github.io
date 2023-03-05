@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="View 动画又叫补间动画，只适用于 View，相关的类在 android.view.animation 包下。View 动画作用的是 View 的影像，原始 View 的位置没有变化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 动画之 View 动画">
+<meta property="og:url" content="http://example.com/2019/01/05/Android-%E5%8A%A8%E7%94%BB%E4%B9%8B-View-%E5%8A%A8%E7%94%BB/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="View 动画又叫补间动画，只适用于 View，相关的类在 android.view.animation 包下。View 动画作用的是 View 的影像，原始 View 的位置没有变化。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-01-05T12:24:11.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Animation">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2019/01/05/Android-%E5%8A%A8%E7%94%BB%E4%B9%8B-View-%E5%8A%A8%E7%94%BB/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2019/01/05/Android-%E5%8A%A8%E7%94%BB%E4%B9%8B-View-%E5%8A%A8%E7%94%BB/","path":"2019/01/05/Android-动画之-View-动画/","title":"Android 动画之 View 动画"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android 动画之 View 动画 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Animation"><span class="nav-number">1.</span> <span class="nav-text">Animation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-View-%E7%BB%98%E5%88%B6%E5%BA%94%E7%94%A8%E5%8A%A8%E7%94%BB"><span class="nav-number">2.</span> <span class="nav-text">通过 View 绘制应用动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transformation"><span class="nav-number">3.</span> <span class="nav-text">Transformation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interpolator-%E6%8F%92%E5%80%BC%E5%99%A8"><span class="nav-number">4.</span> <span class="nav-text">Interpolator 插值器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LinearInterpolator"><span class="nav-number">4.1.</span> <span class="nav-text">LinearInterpolator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AccelerateInterpolator"><span class="nav-number">4.2.</span> <span class="nav-text">AccelerateInterpolator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DecelerateInterpolator"><span class="nav-number">4.3.</span> <span class="nav-text">DecelerateInterpolator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AccelerateDecelerateInterpolator"><span class="nav-number">4.4.</span> <span class="nav-text">AccelerateDecelerateInterpolator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TypeEvaluator-%E4%BC%B0%E5%80%BC%E5%99%A8"><span class="nav-number">5.</span> <span class="nav-text">TypeEvaluator 估值器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#IntEvaluator"><span class="nav-number">5.1.</span> <span class="nav-text">IntEvaluator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ArgbEvaluator"><span class="nav-number">5.2.</span> <span class="nav-text">ArgbEvaluator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PointFEvaluator"><span class="nav-number">5.3.</span> <span class="nav-text">PointFEvaluator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%83%E5%B1%80%E5%8A%A8%E7%94%BB"><span class="nav-number">6.</span> <span class="nav-text">布局动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E7%94%BB%E6%95%88%E6%9E%9C"><span class="nav-number">7.</span> <span class="nav-text">动画效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3-API"><span class="nav-number">8.</span> <span class="nav-text">相关 API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/01/05/Android-%E5%8A%A8%E7%94%BB%E4%B9%8B-View-%E5%8A%A8%E7%94%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android 动画之 View 动画 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android 动画之 View 动画
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-01-05 20:24:11" itemprop="dateCreated datePublished" datetime="2019-01-05T20:24:11+08:00">2019-01-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>View 动画又叫补间动画，只适用于 View，相关的类在 <code>android.view.animation</code> 包下。View 动画作用的是 View 的影像，原始 View 的位置没有变化。</p>
+<span id="more"></span>
+
+<p>四种常用的 View 动画：</p>
+<ol>
+<li><strong>TranslationAnimation</strong>：位移动画</li>
+<li><strong>RotateAnimation</strong>：旋转动画</li>
+<li><strong>ScaleAnimation</strong>：缩放动画</li>
+<li><strong>AlphaAnimation</strong>：透明度动画</li>
+</ol>
+<p>基本用法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">TranslateAnimation</span> <span class="variable">animation</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">TranslateAnimation</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">500</span>);</span><br><span class="line">animation.setDuration(<span class="number">2000</span>);</span><br><span class="line">animation.setRepeatCount(Animation.INFINITE);</span><br><span class="line">animation.setRepeatMode(Animation.REVERSE);</span><br><span class="line">view.startAnimation(animation);</span><br><span class="line"></span><br><span class="line"><span class="type">View</span> <span class="variable">mView</span> <span class="operator">=</span> findViewById(R.id.mView);</span><br><span class="line"><span class="comment">// xml文件地址 res/anim/slide_bottom_in.xml</span></span><br><span class="line"><span class="type">Animation</span> <span class="variable">mAnimation</span> <span class="operator">=</span> AnimationUtils.loadAnimation(<span class="built_in">this</span>,R.anim.slide_bottom_in);</span><br><span class="line">mView.startAnimation(mAnimation);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>源码基于 sdk-30&#x2F;11.0&#x2F;R</p>
+</blockquote>
+<h2 id="Animation"><a href="#Animation" class="headerlink" title="Animation"></a>Animation</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Abstraction for an Animation that can be applied to Views, Surfaces, or</span></span><br><span class="line"><span class="comment"> * other objects.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Animation</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates a new animation with a duration of 0ms, the default interpolator, with</span></span><br><span class="line"><span class="comment">     * fillBefore set to true and fillAfter set to false</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Animation</span><span class="params">()</span> &#123;</span><br><span class="line">        ensureInterpolator();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">ensureInterpolator</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mInterpolator == <span class="literal">null</span>) &#123;</span><br><span class="line">            mInterpolator = <span class="keyword">new</span> <span class="title class_">AccelerateDecelerateInterpolator</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">getTransformation</span><span class="params">(<span class="type">long</span> currentTime, Transformation outTransformation)</span> &#123;</span><br><span class="line">    <span class="comment">// 记录动画启动时间</span></span><br><span class="line">    <span class="keyword">if</span> (mStartTime == -<span class="number">1</span>) &#123;</span><br><span class="line">        mStartTime = currentTime;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">long</span> <span class="variable">startOffset</span> <span class="operator">=</span> getStartOffset();</span><br><span class="line">    <span class="keyword">final</span> <span class="type">long</span> <span class="variable">duration</span> <span class="operator">=</span> mDuration;</span><br><span class="line">    <span class="type">float</span> normalizedTime;</span><br><span class="line">    <span class="comment">// 计算动画进度 [0, 1]</span></span><br><span class="line">    <span class="keyword">if</span> (duration != <span class="number">0</span>) &#123;</span><br><span class="line">        normalizedTime = ((<span class="type">float</span>) (currentTime - (mStartTime + startOffset))) /</span><br><span class="line">                (<span class="type">float</span>) duration;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// time is a step-change with a zero duration</span></span><br><span class="line">        normalizedTime = currentTime &lt; mStartTime ? <span class="number">0.0f</span> : <span class="number">1.0f</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 动画是否结束</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">expired</span> <span class="operator">=</span> normalizedTime &gt;= <span class="number">1.0f</span> || isCanceled();</span><br><span class="line">    mMore = !expired;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 越界检测</span></span><br><span class="line">    <span class="keyword">if</span> (!mFillEnabled) normalizedTime = Math.max(Math.min(normalizedTime, <span class="number">1.0f</span>), <span class="number">0.0f</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ((normalizedTime &gt;= <span class="number">0.0f</span> || mFillBefore) &amp;&amp; (normalizedTime &lt;= <span class="number">1.0f</span> || mFillAfter)) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// 根据插值器计算动画进度</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">float</span> <span class="variable">interpolatedTime</span> <span class="operator">=</span> mInterpolator.getInterpolation(normalizedTime);</span><br><span class="line">        <span class="comment">// 更新动画，子类重写</span></span><br><span class="line">        applyTransformation(interpolatedTime, outTransformation);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mMore;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>默认是 <code>AccelerateDecelerateInterpolator</code> 插值器。</li>
+<li>记录动画第一帧的时间；</li>
+<li>根据当前时间、动画开始时间和动画时长计算动画进度；</li>
+<li>根据插值器计算动画的实际进度；</li>
+<li>调用子类的 <code>applyTransformation()</code>方法，应用动画效果。</li>
+</ol>
+<p>Animation#applyTransformation() 是空实现，由具体的子类实现。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TranslateAnimation.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">applyTransformation</span><span class="params">(<span class="type">float</span> interpolatedTime, Transformation t)</span> &#123;</span><br><span class="line">    <span class="type">float</span> <span class="variable">dx</span> <span class="operator">=</span> mFromXDelta;</span><br><span class="line">    <span class="type">float</span> <span class="variable">dy</span> <span class="operator">=</span> mFromYDelta;</span><br><span class="line">    <span class="keyword">if</span> (mFromXDelta != mToXDelta) &#123;</span><br><span class="line">        dx = mFromXDelta + ((mToXDelta - mFromXDelta) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mFromYDelta != mToYDelta) &#123;</span><br><span class="line">        dy = mFromYDelta + ((mToYDelta - mFromYDelta) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line">    t.getMatrix().setTranslate(dx, dy);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RotateAnimation.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">applyTransformation</span><span class="params">(<span class="type">float</span> interpolatedTime, Transformation t)</span> &#123;</span><br><span class="line">    <span class="type">float</span> <span class="variable">degrees</span> <span class="operator">=</span> mFromDegrees + ((mToDegrees - mFromDegrees) * interpolatedTime);</span><br><span class="line">    <span class="type">float</span> <span class="variable">scale</span> <span class="operator">=</span> getScaleFactor();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mPivotX == <span class="number">0.0f</span> &amp;&amp; mPivotY == <span class="number">0.0f</span>) &#123;</span><br><span class="line">        t.getMatrix().setRotate(degrees);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        t.getMatrix().setRotate(degrees, mPivotX * scale, mPivotY * scale);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ScaleAnimation.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">applyTransformation</span><span class="params">(<span class="type">float</span> interpolatedTime, Transformation t)</span> &#123;</span><br><span class="line">    <span class="type">float</span> <span class="variable">sx</span> <span class="operator">=</span> <span class="number">1.0f</span>;</span><br><span class="line">    <span class="type">float</span> <span class="variable">sy</span> <span class="operator">=</span> <span class="number">1.0f</span>;</span><br><span class="line">    <span class="type">float</span> <span class="variable">scale</span> <span class="operator">=</span> getScaleFactor();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mFromX != <span class="number">1.0f</span> || mToX != <span class="number">1.0f</span>) &#123;</span><br><span class="line">        sx = mFromX + ((mToX - mFromX) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mFromY != <span class="number">1.0f</span> || mToY != <span class="number">1.0f</span>) &#123;</span><br><span class="line">        sy = mFromY + ((mToY - mFromY) * interpolatedTime);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mPivotX == <span class="number">0</span> &amp;&amp; mPivotY == <span class="number">0</span>) &#123;</span><br><span class="line">        t.getMatrix().setScale(sx, sy);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        t.getMatrix().setScale(sx, sy, scale * mPivotX, scale * mPivotY);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AlphaAnimation.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">applyTransformation</span><span class="params">(<span class="type">float</span> interpolatedTime, Transformation t)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">float</span> <span class="variable">alpha</span> <span class="operator">=</span> mFromAlpha;</span><br><span class="line">    t.setAlpha(alpha + ((mToAlpha - alpha) * interpolatedTime));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过-View-绘制应用动画"><a href="#通过-View-绘制应用动画" class="headerlink" title="通过 View 绘制应用动画"></a>通过 View 绘制应用动画</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// View.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">startAnimation</span><span class="params">(Animation animation)</span> &#123;</span><br><span class="line">    animation.setStartTime(Animation.START_ON_FIRST_FRAME);</span><br><span class="line">    setAnimation(animation);</span><br><span class="line">    invalidateParentCaches();</span><br><span class="line">    invalidate(<span class="literal">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>设置 Animation 对象，清除父 View 缓存，发起重绘操作。</p>
+<ol>
+<li>调用 <code>View.startAnimation()</code> 方法，设置 Animation 对象，通过 <code>invalidate()</code> 发起重绘请求；</li>
+<li>从当前 View 向父 View 遍历，调用 <code>ViewParent#invalidateChildInParent()</code> 方法；</li>
+<li>最后调用到 <code>ViewRootImpl#invalidateChildInParent()</code>，接着调用 <code>scheduleTraversals()</code> 调度 View 树的重绘；</li>
+</ol>
+<p>ViewGroup 通过 <code>drawChild()</code> 方法绘制子 View，达到动画的效果。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// View.java</span></span><br><span class="line"><span class="type">boolean</span> <span class="title function_">draw</span><span class="params">(Canvas canvas, ViewGroup parent, <span class="type">long</span> drawingTime)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Animation</span> <span class="variable">a</span> <span class="operator">=</span> getAnimation();</span><br><span class="line">    <span class="keyword">if</span> (a != <span class="literal">null</span>) &#123;</span><br><span class="line">        more = applyLegacyAnimation(parent, drawingTime, a, scalingRequired);</span><br><span class="line">        transformToApply = parent.getChildTransformation();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">applyLegacyAnimation</span><span class="params">(ViewGroup parent,...)</span> &#123;</span><br><span class="line">    Transformation invalidationTransform;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">initialized</span> <span class="operator">=</span> a.isInitialized();</span><br><span class="line">    <span class="keyword">if</span> (!initialized) &#123;</span><br><span class="line">        a.initialize(mRight - mLeft, mBottom - mTop, parent.getWidth(), parent.getHeight());</span><br><span class="line">        a.initializeInvalidateRegion(<span class="number">0</span>, <span class="number">0</span>, mRight - mLeft, mBottom - mTop);</span><br><span class="line">        <span class="keyword">if</span> (mAttachInfo != <span class="literal">null</span>) a.setListenerHandler(mAttachInfo.mHandler);</span><br><span class="line">        onAnimationStart();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">Transformation</span> <span class="variable">t</span> <span class="operator">=</span> parent.getChildTransformation();</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">more</span> <span class="operator">=</span> a.getTransformation(drawingTime, t, <span class="number">1f</span>);</span><br><span class="line">    <span class="comment">// 动画正在运行</span></span><br><span class="line">    <span class="keyword">if</span> (more) &#123;</span><br><span class="line">        <span class="comment">// a.willChangeBounds() 返回 true</span></span><br><span class="line">        <span class="keyword">if</span> (!a.willChangeBounds()) &#123;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 重新发起绘制流程</span></span><br><span class="line">            parent.invalidate(left, top, left + (<span class="type">int</span>) (region.width() + <span class="number">.5f</span>),</span><br><span class="line">                    top + (<span class="type">int</span>) (region.height() + <span class="number">.5f</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> more;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>View 绘制时回调用 Animation；</li>
+<li>如果动画没有执行完毕，就会调用 <code>invalidate()</code> 方法，递归向父 View 请求重绘，直到 <code>ViewRootImpl</code> 发起绘制流程；</li>
+<li>当下一帧屏幕刷新信号来的时候，通过 <code>ViewRootImpl#performTraversals()</code> 遍历 View 树绘制，在 View#draw() 方法内调用 <code>View#applyLegacyAnimation()</code> 方法执行动画相关操作，包括调用 <code>Animation#getTransformation()</code> 计算动画进度和 <code>Animation#applyTransformation()</code> 应用动画。</li>
+<li>在动画很流畅的情况下，每隔 16.6ms 即一帧到来的时候，执行一次 <code>applyTransformation()</code>，直到动画完成。所以 <code>applyTransformation()</code> 会被回调多次，而且这个回调次数并没有办法人为进行设定。</li>
+</ol>
+<h2 id="Transformation"><a href="#Transformation" class="headerlink" title="Transformation"></a>Transformation</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Defines the transformation to be applied at</span></span><br><span class="line"><span class="comment"> * one point in time of an Animation.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Transformation</span> &#123;</span><br><span class="line">    <span class="keyword">protected</span> Matrix mMatrix;</span><br><span class="line">    <span class="keyword">protected</span> <span class="type">float</span> mAlpha;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates a new transformation with alpha = 1 and the identity matrix.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Transformation</span><span class="params">()</span> &#123;</span><br><span class="line">        clear();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">clear</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (mMatrix == <span class="literal">null</span>) &#123;</span><br><span class="line">            mMatrix = <span class="keyword">new</span> <span class="title class_">Matrix</span>();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            mMatrix.reset();</span><br><span class="line">        &#125;</span><br><span class="line">        mClipRect.setEmpty();</span><br><span class="line">        mHasClipRect = <span class="literal">false</span>;</span><br><span class="line">        mAlpha = <span class="number">1.0f</span>;</span><br><span class="line">        mTransformationType = TYPE_BOTH;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Interpolator-插值器"><a href="#Interpolator-插值器" class="headerlink" title="Interpolator 插值器"></a>Interpolator 插值器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A time interpolator defines the rate of change of an animation. This allows animations</span></span><br><span class="line"><span class="comment"> * to have non-linear motion, such as acceleration and deceleration.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">TimeInterpolator</span> &#123;</span><br><span class="line">    <span class="type">float</span> <span class="title function_">getInterpolation</span><span class="params">(<span class="type">float</span> input)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * An interpolator defines the rate of change of an animation. This allows</span></span><br><span class="line"><span class="comment"> * the basic animation effects (alpha, scale, translate, rotate) to be</span></span><br><span class="line"><span class="comment"> * accelerated, decelerated, repeated, etc.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Interpolator</span> <span class="keyword">extends</span> <span class="title class_">TimeInterpolator</span> &#123;</span><br><span class="line">    <span class="comment">// A new interface, TimeInterpolator, was introduced for the new android.animation</span></span><br><span class="line">    <span class="comment">// package. This older Interpolator interface extends TimeInterpolator so that users of</span></span><br><span class="line">    <span class="comment">// the new Animator-based animations can use either the old Interpolator implementations or</span></span><br><span class="line">    <span class="comment">// new classes that implement TimeInterpolator directly.</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="LinearInterpolator"><a href="#LinearInterpolator" class="headerlink" title="LinearInterpolator"></a>LinearInterpolator</h3><p>线性插值器，匀速运动。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">float</span> <span class="title function_">getInterpolation</span><span class="params">(<span class="type">float</span> input)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> input;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="AccelerateInterpolator"><a href="#AccelerateInterpolator" class="headerlink" title="AccelerateInterpolator"></a>AccelerateInterpolator</h3><p>加速插值器，动画越来越快。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">float</span> <span class="title function_">getInterpolation</span><span class="params">(<span class="type">float</span> input)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (mFactor == <span class="number">1.0f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> input * input;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="type">float</span>)Math.pow(input, mDoubleFactor);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="DecelerateInterpolator"><a href="#DecelerateInterpolator" class="headerlink" title="DecelerateInterpolator"></a>DecelerateInterpolator</h3><p>减速插值器，动画越来越慢。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">float</span> <span class="title function_">getInterpolation</span><span class="params">(<span class="type">float</span> input)</span> &#123;</span><br><span class="line">    <span class="type">float</span> result;</span><br><span class="line">    <span class="keyword">if</span> (mFactor == <span class="number">1.0f</span>) &#123;</span><br><span class="line">        result = (<span class="type">float</span>)(<span class="number">1.0f</span> - (<span class="number">1.0f</span> - input) * (<span class="number">1.0f</span> - input));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        result = (<span class="type">float</span>)(<span class="number">1.0f</span> - Math.pow((<span class="number">1.0f</span> - input), <span class="number">2</span> * mFactor));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="AccelerateDecelerateInterpolator"><a href="#AccelerateDecelerateInterpolator" class="headerlink" title="AccelerateDecelerateInterpolator"></a>AccelerateDecelerateInterpolator</h3><p>加速减速插值器，动画两头慢，中间快。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">float</span> <span class="title function_">getInterpolation</span><span class="params">(<span class="type">float</span> input)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">float</span>)(Math.cos((input + <span class="number">1</span>) * Math.PI) / <span class="number">2.0f</span>) + <span class="number">0.5f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="TypeEvaluator-估值器"><a href="#TypeEvaluator-估值器" class="headerlink" title="TypeEvaluator 估值器"></a>TypeEvaluator 估值器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface for use with the ValueAnimator#setEvaluator(TypeEvaluator) function. Evaluators</span></span><br><span class="line"><span class="comment"> * allow developers to create animations on arbitrary property types, by allowing them to supply</span></span><br><span class="line"><span class="comment"> * custom evaluators for types that are not automatically understood and used by the animation</span></span><br><span class="line"><span class="comment"> * system.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">TypeEvaluator</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">evaluate</span><span class="params">(<span class="type">float</span> fraction, T startValue, T endValue)</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="IntEvaluator"><a href="#IntEvaluator" class="headerlink" title="IntEvaluator"></a>IntEvaluator</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * This evaluator can be used to perform type interpolation between &lt;code&gt;int&lt;/code&gt; values.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">IntEvaluator</span> <span class="keyword">implements</span> <span class="title class_">TypeEvaluator</span>&lt;Integer&gt; &#123;</span><br><span class="line">    <span class="keyword">public</span> Integer <span class="title function_">evaluate</span><span class="params">(<span class="type">float</span> fraction, Integer startValue, Integer endValue)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">startInt</span> <span class="operator">=</span> startValue;</span><br><span class="line">        <span class="keyword">return</span> (<span class="type">int</span>)(startInt + fraction * (endValue - startInt));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ArgbEvaluator"><a href="#ArgbEvaluator" class="headerlink" title="ArgbEvaluator"></a>ArgbEvaluator</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * This evaluator can be used to perform type interpolation between integer</span></span><br><span class="line"><span class="comment"> * values that represent ARGB colors.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ArgbEvaluator</span> <span class="keyword">implements</span> <span class="title class_">TypeEvaluator</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">ArgbEvaluator</span> <span class="variable">sInstance</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ArgbEvaluator</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ArgbEvaluator <span class="title function_">getInstance</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> sInstance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">evaluate</span><span class="params">(<span class="type">float</span> fraction, Object startValue, Object endValue)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">startInt</span> <span class="operator">=</span> (Integer) startValue;</span><br><span class="line">        <span class="type">float</span> <span class="variable">startA</span> <span class="operator">=</span> ((startInt &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">startR</span> <span class="operator">=</span> ((startInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">startG</span> <span class="operator">=</span> ((startInt &gt;&gt;  <span class="number">8</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">startB</span> <span class="operator">=</span> ( startInt        &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">endInt</span> <span class="operator">=</span> (Integer) endValue;</span><br><span class="line">        <span class="type">float</span> <span class="variable">endA</span> <span class="operator">=</span> ((endInt &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">endR</span> <span class="operator">=</span> ((endInt &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">endG</span> <span class="operator">=</span> ((endInt &gt;&gt;  <span class="number">8</span>) &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line">        <span class="type">float</span> <span class="variable">endB</span> <span class="operator">=</span> ( endInt        &amp; <span class="number">0xff</span>) / <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// convert from sRGB to linear</span></span><br><span class="line">        startR = (<span class="type">float</span>) Math.pow(startR, <span class="number">2.2</span>);</span><br><span class="line">        startG = (<span class="type">float</span>) Math.pow(startG, <span class="number">2.2</span>);</span><br><span class="line">        startB = (<span class="type">float</span>) Math.pow(startB, <span class="number">2.2</span>);</span><br><span class="line"></span><br><span class="line">        endR = (<span class="type">float</span>) Math.pow(endR, <span class="number">2.2</span>);</span><br><span class="line">        endG = (<span class="type">float</span>) Math.pow(endG, <span class="number">2.2</span>);</span><br><span class="line">        endB = (<span class="type">float</span>) Math.pow(endB, <span class="number">2.2</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// compute the interpolated color in linear space</span></span><br><span class="line">        <span class="type">float</span> <span class="variable">a</span> <span class="operator">=</span> startA + fraction * (endA - startA);</span><br><span class="line">        <span class="type">float</span> <span class="variable">r</span> <span class="operator">=</span> startR + fraction * (endR - startR);</span><br><span class="line">        <span class="type">float</span> <span class="variable">g</span> <span class="operator">=</span> startG + fraction * (endG - startG);</span><br><span class="line">        <span class="type">float</span> <span class="variable">b</span> <span class="operator">=</span> startB + fraction * (endB - startB);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// convert back to sRGB in the [0..255] range</span></span><br><span class="line">        a = a * <span class="number">255.0f</span>;</span><br><span class="line">        r = (<span class="type">float</span>) Math.pow(r, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line">        g = (<span class="type">float</span>) Math.pow(g, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line">        b = (<span class="type">float</span>) Math.pow(b, <span class="number">1.0</span> / <span class="number">2.2</span>) * <span class="number">255.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Math.round(a) &lt;&lt; <span class="number">24</span> | Math.round(r) &lt;&lt; <span class="number">16</span> | Math.round(g) &lt;&lt; <span class="number">8</span> | Math.round(b);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="PointFEvaluator"><a href="#PointFEvaluator" class="headerlink" title="PointFEvaluator"></a>PointFEvaluator</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * This evaluator can be used to perform type interpolation between &lt;code&gt;PointF&lt;/code&gt; values.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PointFEvaluator</span> <span class="keyword">implements</span> <span class="title class_">TypeEvaluator</span>&lt;PointF&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> PointF mPoint;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PointFEvaluator</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PointFEvaluator</span><span class="params">(PointF reuse)</span> &#123;</span><br><span class="line">        mPoint = reuse;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> PointF <span class="title function_">evaluate</span><span class="params">(<span class="type">float</span> fraction, PointF startValue, PointF endValue)</span> &#123;</span><br><span class="line">        <span class="type">float</span> <span class="variable">x</span> <span class="operator">=</span> startValue.x + (fraction * (endValue.x - startValue.x));</span><br><span class="line">        <span class="type">float</span> <span class="variable">y</span> <span class="operator">=</span> startValue.y + (fraction * (endValue.y - startValue.y));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mPoint != <span class="literal">null</span>) &#123;</span><br><span class="line">            mPoint.set(x, y);</span><br><span class="line">            <span class="keyword">return</span> mPoint;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">PointF</span>(x, y);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>估值器是依赖插值器的，需要根据插值器的值才能计算新的值。</p>
+<h2 id="布局动画"><a href="#布局动画" class="headerlink" title="布局动画"></a>布局动画</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">android:id</span>=<span class="string">&quot;@+id/container&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:animateLayoutChanges</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layoutAnimation</span>=<span class="string">&quot;@anim/anim_layoutanimation&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">...</span></span></span><br><span class="line"><span class="tag">/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>将 android:animateLayoutChanges 属性设置为 true。当布局添加、移除或更新项目，系统就会自动对这些项目进行动画处理：</p>
+<p>anim&#x2F;anim_layoutanimation.xml 文件定义如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layoutAnimation</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:animation</span>=<span class="string">&quot;@anim/alpha_appear&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:animationOrder</span>=<span class="string">&quot;normal&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:delay</span>=<span class="string">&quot;30%&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:interpolator</span>=<span class="string">&quot;@android:interpolator/accelerate_decelerate&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="动画效果"><a href="#动画效果" class="headerlink" title="动画效果"></a>动画效果</h2><ul>
+<li><p>Ripple (波纹效果)</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ripple</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag"><span class="attr">android:color</span>=<span class="string">&quot;#ffe5e5e5&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@android:id/mask&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:drawable</span>=<span class="string">&quot;@color/white&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ripple</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Circular Reveal (揭露效果)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Animator</span> <span class="variable">animator</span> <span class="operator">=</span> ViewAnimationUtils.createCircularReveal();</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="相关-API"><a href="#相关-API" class="headerlink" title="相关 API"></a>相关 API</h2><ul>
+<li>AnimationUtils</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>当调用了 <code>View#startAnimation()</code> 时动画并没有马上就执行，而是通过 <code>invalidate()</code> 向上通知到 ViewRootImpl 发起一次遍历 View 树的请求，而这次请求会等到接收到最近一帧到了的信号时才去发起遍历 View 树绘制操作。</li>
+<li>从 DecorView 开始遍历，绘制流程在遍历时会调用到 <code>View#draw()</code> 方法，当该方法被调用时，如果 View 有绑定动画，那么会去调用 <code>applyLegacyAnimation()</code>，这个方法是专门用来处理动画相关逻辑的。</li>
+<li>在 applyLegacyAnimation() 这个方法里，如果动画还没有执行过初始化，先调用动画的初始化方法 <code>initialized()</code>，同时调用 <code>onAnimationStart()</code> 通知动画开始了，然后调用 <code>getTransformation()</code> 来根据当前时间计算动画进度，紧接着调用 <code>applyTransformation()</code> 并传入动画进度来应用动画。</li>
+<li><code>getTransformation()</code> 方法有返回值，如果动画还没结束会返回 true，动画已经结束或者被取消了返回 false。所以 applyLegacyAnimation() 会根据 getTransformation() 的返回值来决定是否通知 ViewRootImpl 再发起一次遍历请求，返回值是 true 表示动画没结束，那么就去通知 ViewRootImpl 再次发起一次遍历请求。然后当下一帧到来时，再从 DecorView 开始遍历 View 树绘制，重复上面的步骤，这样直到动画结束。</li>
+<li>有一点需要注意，动画是在每一帧的绘制流程里被执行，所以动画并不是单独执行的，也就是说，如果这一帧里有一些 View 需要重绘，那么这些工作同样是在这一帧里的这次遍历 View 树的过程中完成的。每一帧只会发起一次 perfromTraversals() 操作。</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1128140">[1] View 动画 Animation 运行原理解析</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Animation/" rel="tag"># Animation</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/01/02/Android-SharedPreferences/" rel="prev" title="Android SharedPreferences">
+                  <i class="fa fa-chevron-left"></i> Android SharedPreferences
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/02/10/Android-Adb-%E5%91%BD%E4%BB%A4%E4%B9%8B-logcat/" rel="next" title="Android Adb 命令之 logcat">
+                  Android Adb 命令之 logcat <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

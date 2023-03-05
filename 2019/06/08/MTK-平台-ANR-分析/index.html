@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta property="og:type" content="article">
+<meta property="og:title" content="MTK 平台 ANR 分析">
+<meta property="og:url" content="http://example.com/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr3.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr1.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr2.png">
+<meta property="article:published_time" content="2019-06-08T10:23:54.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.121Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="ANR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr3.png">
+
+
+<link rel="canonical" href="http://example.com/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/","path":"2019/06/08/MTK-平台-ANR-分析/","title":"MTK 平台 ANR 分析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MTK 平台 ANR 分析 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Trace-%E6%96%87%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">Trace 文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Anr-Trace"><span class="nav-number">2.</span> <span class="nav-text">Anr Trace</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ANR-%E5%8F%91%E7%94%9F%E5%89%8D%E4%B9%8B%E5%90%8E-CPU-%E7%9A%84%E4%BD%BF%E7%94%A8%E7%8E%87"><span class="nav-number">3.</span> <span class="nav-text">ANR 发生前之后 CPU 的使用率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#reason-%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">reason 类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTK-Log"><span class="nav-number">5.</span> <span class="nav-text">MTK Log</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ANR-%E5%88%86%E6%9E%90%E6%AD%A5%E9%AA%A4"><span class="nav-number">6.</span> <span class="nav-text">ANR 分析步骤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%9C%BA%E6%99%AF%E5%88%86%E6%9E%90"><span class="nav-number">7.</span> <span class="nav-text">常见场景分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B%E6%AD%BB%E9%94%81"><span class="nav-number">7.1.</span> <span class="nav-text">主线程死锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%A1%E5%9C%A8-IO-%E6%93%8D%E4%BD%9C"><span class="nav-number">7.2.</span> <span class="nav-text">卡在 IO 操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B%E6%9C%89%E8%80%97%E6%97%B6%E7%9A%84%E5%8A%A8%E4%BD%9C"><span class="nav-number">7.3.</span> <span class="nav-text">主线程有耗时的动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B-Binder-%E8%B0%83%E7%94%A8%E7%AD%89%E5%BE%85%E8%B6%85%E6%97%B6"><span class="nav-number">7.4.</span> <span class="nav-text">主线程 Binder 调用等待超时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Binder-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E8%A2%AB%E5%8D%A0%E6%BB%A1"><span class="nav-number">7.5.</span> <span class="nav-text">Binder 线程池被占满</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JE-%E6%88%96%E8%80%85-NE-%E5%AF%BC%E8%87%B4-ANR"><span class="nav-number">7.6.</span> <span class="nav-text">JE 或者 NE 导致 ANR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AA%E5%AD%98%E5%9C%A8%E4%BA%8E-Monkey-%E6%B5%8B%E8%AF%95%E4%B8%8B"><span class="nav-number">7.7.</span> <span class="nav-text">只存在于 Monkey 测试下</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/06/08/MTK-%E5%B9%B3%E5%8F%B0-ANR-%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MTK 平台 ANR 分析 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MTK 平台 ANR 分析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-06-08 18:23:54" itemprop="dateCreated datePublished" datetime="2019-06-08T18:23:54+08:00">2019-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ANR/" itemprop="url" rel="index"><span itemprop="name">ANR</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr3.png" alt="Anr"></p>
+<span id="more"></span>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr1.png" alt="Anr">  </p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-anr2.png" alt="Anr">  </p>
+<blockquote>
+<p>KeyDispatchTimeout(谷歌默认 5s，MTK 平台上是 8s)</p>
+</blockquote>
+<h2 id="Trace-文件"><a href="#Trace-文件" class="headerlink" title="Trace 文件"></a>Trace 文件</h2><p>Trace 文件是 android davik 虚拟机在收到异常终止信号 （SIGQUIT）时产生的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ActivityManagerService.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> File <span class="title function_">dumpStackTraces</span><span class="params">(<span class="type">boolean</span> clearTraces, ArrayList&lt;Integer&gt; firstPids ...)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">tracesPath</span> <span class="operator">=</span> SystemProperties.get(<span class="string">&quot;dalvik.vm.stack-trace-file&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">...</span><br><span class="line">    <span class="keyword">return</span> tracesFile;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Android 低版本的 ANR 文件路径可以通过 adb 命令获取：<br><code>adb shell getprop dalvik.vm.stack-trace-file</code>，如：&#x2F;data&#x2F;anr&#x2F;traces.txt<br>也可以通过 <code>adb shell setprop dalvik.vm.stack-trace-file</code> 设置 ANR 文件保存路径。</p>
+<p>需要在开发者模式中打开“显示所有应用无响应（ANR）。<br>发生 ANR 时 log 会保存在 &#x2F;data&#x2F;anr&#x2F; 目录下，使用 adb pull 命令导出查看。</p>
+<p><strong>产生 ANR 的原因：</strong></p>
+<ol>
+<li><code>CPU 密集</code>，导致主线程分配不到 cpu 时间片，要注意 cpu 占用高的进程；</li>
+<li><code>高IO</code>，应用在主线程上非常缓慢地执行涉及 I&#x2F;O 的操作，如复杂的 layout、频繁的 I&#x2F;O 操作。(log 中 cpu 的使用 iowait 占比高);</li>
+<li><code>低内存（low memory）</code>，系统或者应用自身可用内存紧张，系统一直在执行 lowmemorykiller 操作查杀进程；</li>
+<li>主线程存在耗时操作：主线程阻塞（Blocked）、挂起（suspend）、死锁、死循环、耗时操作等。通常 log 中会有以下字段 Blocked | locked | waiting to lock | held by thread，这个时候 cpu 多数是空闲，使用占比很低;</li>
+<li><code>Binder 通信等待超时</code>，当前应用进程进行进程间通信请求其他进程，其他进程的操作长时间没有反馈,例如操作硬件 Camera;</li>
+<li>Service <code>binder 数量达到上限</code>;</li>
+<li>在 system_server 中触发 WatchDog ANR;</li>
+<li>应用频繁 crash：包括应用自身也容易导致前台应用出现 anr 的现象；</li>
+</ol>
+<h2 id="Anr-Trace"><a href="#Anr-Trace" class="headerlink" title="Anr Trace"></a>Anr Trace</h2><p>文件路径在 <code>/data/anr/anr_2019-06-08-09-54-45-557</code>。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">----- pid 3387 at 2019-06-08 09:54:45 -----</span><br><span class="line">Cmd line: com.app.anrtest</span><br><span class="line">Build fingerprint: &#x27;Android/sdk_phone_x86/generic_x86:11/RSR1.210210.001.A1/7193139:userdebug/dev-keys&#x27;</span><br><span class="line">ABI: &#x27;x86&#x27;</span><br><span class="line">Build type: optimized</span><br><span class="line">Zygote loaded classes=15747 post zygote classes=17</span><br><span class="line">...</span><br><span class="line">ProfileSaver total_number_of_hot_spikes=0</span><br><span class="line">ProfileSaver total_number_of_wake_ups=0</span><br><span class="line"></span><br><span class="line">suspend all histogram: Sum: 287us 99% C.I. 16us-44us Avg: 23.916us Max: 44us</span><br><span class="line">DALVIK THREADS (14):</span><br><span class="line">&quot;Signal Catcher&quot; daemon prio=10 tid=3 Runnable</span><br><span class="line">  | group=&quot;system&quot; sCount=0 dsCount=0 flags=0 obj=0x12c40820 self=0xdaa4a810</span><br><span class="line">  | sysTid=3395 nice=-20 cgrp=top-app sched=0/0 handle=0xcfd521e0</span><br><span class="line">  | state=R schedstat=( 4366219 4431667 9 ) utm=0 stm=0 core=1 HZ=100</span><br><span class="line">  | stack=0xcfc57000-0xcfc59000 stackSize=1008KB</span><br><span class="line">  | held mutexes= &quot;mutator lock&quot;(shared held)</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">&quot;main&quot; prio=5 tid=1 Sleeping</span><br><span class="line">  | group=&quot;main&quot; sCount=1 dsCount=0 flags=1 obj=0x71079c28 self=0xdaa45410</span><br><span class="line">  | sysTid=3387 nice=-10 cgrp=top-app sched=0/0 handle=0xe8fc1478</span><br><span class="line">  | state=S schedstat=( 205526814 390344659 162 ) utm=10 stm=10 core=1 HZ=100</span><br><span class="line">  | stack=0xff78b000-0xff78d000 stackSize=8192KB</span><br><span class="line">  | held mutexes=</span><br><span class="line">  at java.lang.Thread.sleep(Native method)</span><br><span class="line">  - sleeping on &lt;0x0ce011df&gt; (a java.lang.Object)</span><br><span class="line">  at java.lang.Thread.sleep(Thread.java:442)</span><br><span class="line">  - locked &lt;0x0ce011df&gt; (a java.lang.Object)</span><br><span class="line">  at java.lang.Thread.sleep(Thread.java:358)</span><br><span class="line">  at android.os.SystemClock.sleep(SystemClock.java:131)</span><br><span class="line">  at com.app.anrtest.App.onCreate(App.java:12)</span><br><span class="line">  at android.app.Instrumentation.callApplicationOnCreate(Instrumentation.java:1192)</span><br><span class="line">  at android.app.ActivityThread.handleBindApplication(ActivityThread.java:6712)</span><br><span class="line">  at android.app.ActivityThread.access$1300(ActivityThread.java:237)</span><br><span class="line">  at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1913)</span><br><span class="line">  at android.os.Handler.dispatchMessage(Handler.java:106)</span><br><span class="line">  at android.os.Looper.loop(Looper.java:223)</span><br><span class="line">  at android.app.ActivityThread.main(ActivityThread.java:7656)</span><br><span class="line">  at java.lang.reflect.Method.invoke(Native method)</span><br><span class="line">  at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)</span><br><span class="line">  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)</span><br><span class="line"></span><br><span class="line">...省略其他线程</span><br><span class="line">----- end 3387 -----</span><br><span class="line"></span><br><span class="line">... 省略 system_server 等进程</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>main</strong>：main 标识是主线程，如果是线程，那么命名成“Thread-X”的格式,x 表示线程 id,逐步递增<br><strong>daemon</strong>： 如果有说明这是个守护线程<br><strong>prio</strong>：线程优先级,默认是 5<br><strong>tid</strong>：tid 不是线程的 id，是线程在该进程中唯一标识 ID<br>进程 pid: getpid()<br>线程 tid: pthread_self() &#x2F;&#x2F;进程内唯一，但是在不同进程则不唯一。<br>线程 pid: syscall(SYS_gettid) &#x2F;&#x2F;系统内是唯一的<br><strong>Sleeping</strong>：线程当前状态（TIMED_WAIT 或 SUSPENDED 在 anr 时很常见）<br><strong>group</strong>： 线程组名称<br><strong>sCount</strong>：suspendCount，该线程被挂起的次数<br><strong>dsCount</strong>：debugSuspendCount，线程被调试器挂起的次数<br><strong>obj</strong>：线程的 Java 对象地址<br><strong>self</strong>：该线程 Native 的地址<br><strong>sysTid</strong>：是线程号(主线程的线程号和进程号相同)<br><strong>nice</strong>：是线程的调度优先级<br><strong>cgrp</strong>：调度归属组<br><strong>sched</strong>：分别标志了线程的调度策略和优先级<br><strong>handle</strong>：线程处理函数的地址<br><strong>state</strong>：是调度状态<br><strong>schedstat</strong>：从 &#x2F;proc&#x2F;[pid]&#x2F;task&#x2F;[tid]&#x2F;schedstat 读出，三个值分别表示线程在 cpu 上执行的时间、线程的等待时间和线程执行的时间片长度，不支持这项信息的三个值都是 0<br><strong>utm</strong>：是线程用户态下使用的时间值(单位是 jiffies）<br><strong>stm</strong>：是内核态下的调度时间值<br><strong>core</strong>：是最后执行这个线程的 cpu 核的序号。</p>
+<p>线程的分类：</p>
+<ol>
+<li>“Signal Catcher” 负责接收和处理 kernel 发送的各种信号，例如<code>SIGNAL_QUIT</code>、SIGNAL_USR1 等就是被该线程接收到，这个文件的内容就是由该线程负责输出的，可以看到它的状态是 RUNNABLE。</li>
+<li>Binder 线程是进程的线程池中用来处理 binder 请求的线程；</li>
+<li>JDWP 线程是支持虚拟机调试的线程，不需要关心；</li>
+</ol>
+<p>线程的状态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ThreadState (defined at “dalvik/vm/thread.h “)</span><br><span class="line">THREAD_UNDEFINED = -1, /_ makes enum compatible with int32_t _/</span><br><span class="line">THREAD_ZOMBIE = 0, /_ TERMINATED _/</span><br><span class="line">THREAD_RUNNING = 1, /_ RUNNABLE or running now _/</span><br><span class="line">THREAD_TIMED_WAIT = 2, /_ TIMED_WAITING in Object.wait() _/</span><br><span class="line">THREAD_MONITOR = 3, /_ BLOCKED on a monitor _/</span><br><span class="line">THREAD_WAIT = 4, /_ WAITING in Object.wait() _/</span><br><span class="line">THREAD_INITIALIZING= 5, /_ allocated, not yet running _/</span><br><span class="line">THREAD_STARTING = 6, /_ started, not yet on thread list _/</span><br><span class="line">THREAD_NATIVE = 7, /_ off in a JNI native method _/</span><br><span class="line">THREAD_VMWAIT = 8, /_ waiting on a VM resource _/</span><br><span class="line">THREAD_SUSPENDED = 9, /_ suspended, usually by GC or debugger _/</span><br></pre></td></tr></table></figure>
+
+<h2 id="ANR-发生前之后-CPU-的使用率"><a href="#ANR-发生前之后-CPU-的使用率" class="headerlink" title="ANR 发生前之后 CPU 的使用率"></a>ANR 发生前之后 CPU 的使用率</h2><p>tag 定义如下：</p>
+<blockquote>
+<p>2721 cpu (total|1|6),(user|1|6),(system|1|6),(iowait|1|6),(irq|1|6),(softirq|1|6)</p>
+</blockquote>
+<p>CPU 使用率可以理解为一段时间（记作 T）内除 CPU 空闲时间（记作 I）之外的时间与这段时间 T 的比值，用公式表示可以写为：CPU 使用率 &#x3D; (T – I) &#x2F; T，而时间段 T 是两个采样时间点的时间差值。之所以可以这样计算，是因为 Linux 内核会把从系统启动开始到当前时刻 CPU 活动的所有时间信息都记录下来，我们可以通过查看<code>/proc/stat</code>文件获取这些信息。<br>主要包括以下几种时间，这些时间都是从系统启动开始计算的，单位都是 0.01 秒：<br>user： CPU 在用户态的运行时间，不包括 nice 值为负数的进程运行的时间<br>nice： CPU 在用户态并且 nice 值为负数的进程运行的时间<br>system：CPU 在内核态运行的时间<br>idle： CPU 空闲时间，不包括 iowait 时间<br>iowait： CPU 等待 I&#x2F;O 操作的时间<br>irq： CPU 硬中断的时间<br>softirq：CPU 软中断的时间</p>
+<ul>
+<li>如果 CPU 使用量和高，说明当前线程很忙（内存不足，循环处理等）</li>
+<li>如果 CPU 使用量很少，说明主线程被 BLOCK 了。</li>
+<li>如果 IOwait 很高，说明 ANR 有可能是主线程在进行 I&#x2F;O 操作造成的。</li>
+</ul>
+<h2 id="reason-类型"><a href="#reason-类型" class="headerlink" title="reason 类型"></a>reason 类型</h2><p>ANR reason 主要有以下几类：</p>
+<ol>
+<li><strong>有应用，无窗口</strong>：Waiting because no window has focus but there is a focused application that may eventually add a window when it finishes starting up。</li>
+<li><strong>窗口暂停</strong>: Waiting because the [targetType] window is paused.</li>
+<li><strong>窗口未连接</strong>: Waiting because the [targetType] window’s input channel is not registered with the input dispatcher. The window may be in the process of being removed.</li>
+<li><strong>窗口连接已死亡</strong>：Waiting because the [targetType] window’s input connection is [Connection.Status]. The window may be in the process of being removed.</li>
+<li><strong>窗口连接已满</strong>：Waiting because the [targetType] window’s input channel is full. Outbound queue length: [outboundQueue 长度]. Wait queue length: [waitQueue 长度].</li>
+<li><strong>按键事件，输出队列或事件等待队列不为空</strong>：Waiting to send key event because the [targetType] window has not finished processing all of the input events that were previously delivered to it. Outbound queue length: [outboundQueue 长度]. Wait queue length: [waitQueue 长度].</li>
+<li><strong>非按键事件，事件等待队列不为空且头事件分发超时 5000ms</strong>：Waiting to send non-key event because the [targetType] window has not finished processing certain input events that were delivered to it over 500ms ago. Wait queue length: [waitQueue 长度]. Wait queue head age: [等待时长].</li>
+</ol>
+<p>targetType: 取值为”focused”或者”touched”<br>Connection.Status: 取值为”NORMAL”，”BROKEN”，”ZOMBIE”</p>
+<h2 id="MTK-Log"><a href="#MTK-Log" class="headerlink" title="MTK Log"></a>MTK Log</h2><p>关键字：<code>anr</code>、<code>am_anr</code>、<code>Application is not responding</code>、<code>ANR in</code></p>
+<p><strong>__exp_main.txt</strong>：异常类型，调用栈等关键信息。<br><strong>SYS_ANDROID_LOG</strong>: main log，上层 app 以及 framework 相关活动的 log<br><strong>SYS_ANDROID_EVENT_LOG</strong>: 系统事件 log，如 ActivityManager、powerManager 相关的活动记录<br>SYS_KERNEL_LOG：kernel log<br>SYS_VERSION_INFO：kernel 版本，用于和 vmlinux 对比，只有匹配的 vmlinux 才能用于分析这个异常。<br>DUMPSYS_ACTIVITY:AMS 日志<br>DUMPSYS_DBINFO ：数据库操作记录<br>DUMPSYS_WINDOW :窗口记录，记录 anr 发生的窗口页面<br>PROCESS_STATE: 发生 ANR 程序的进程信息，虚拟机信息<br>SWT_JBT_TRACES:不知道怎么描述，自认为堆栈调用相关的记录吧<br>SYS_ANDROID_RADIO_LOG: 联网相关<br>SYS_BINDER_INFO:<br>SYS_BINDER_MEM_USED:<br>parser &#x2F;&#x2F;parser 解析文件夹，基本解析了 anr 相关的信息，CPU、内存的诊断,binder 分析</p>
+<p>adb 获取 main log: <code>adb logcat -b main -v time &gt; main.log</code><br>adb 获取 event log: <code>adb logcat -b events -v time &gt; events.log</code></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">01-02 12:45:58.325  1437  1495 I Process : Sending signal. PID: 16867 SIG: 3</span><br><span class="line"></span><br><span class="line">frameworks/base/core/jni/android_util_Process.cpp</span><br><span class="line">void android_os_Process_sendSignal(JNIEnv* env, jobject clazz, jint pid, jint sig)</span><br><span class="line">&#123;</span><br><span class="line">    if (pid &gt; 0) &#123;</span><br><span class="line">        ALOGI(&quot;Sending signal. PID: %&quot; PRId32 &quot; SIG: %&quot; PRId32, pid, sig);</span><br><span class="line">        kill(pid, sig);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">01-07 10:37:43.453 I/InputDispatcher( 1187): Application is not responding: AppWindowToken&#123;4feea63 token=Token&#123;1be0092 ActivityRecord&#123;c75e61d u0 com.android.server.emptyproject/.MainActivity t172&#125;&#125;&#125;.  It has been 5010.6ms since event, 5005.7ms since wait started.  Reason: Waiting because no window has focus but there is a focused application that may eventually add a window when it finishes starting up.</span><br></pre></td></tr></table></figure>
+
+<h2 id="ANR-分析步骤"><a href="#ANR-分析步骤" class="headerlink" title="ANR 分析步骤"></a>ANR 分析步骤</h2><p><strong>1. 确认时间点：</strong></p>
+<p>mobilelog 文件夹下的 events_log,搜索关键字”am_anr”,这一步用于确认 ANR 时间点，可以搜索到类似如下信息：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">01-05 15:19:46.214 I/am_anr  (  506): [0,3975,com.android.server.emptyproject,818462534,Input dispatching timed out (8b8b1d3 com.android.server.emptyproject/com.android.server.emptyproject.MainActivity (server) is not responding. Waited 5005ms for KeyEvent(deviceId=-1, source=0x00000101, displayId=0, action=DOWN, flags=0x00000048, keyCode=4, scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000002)]</span><br><span class="line">01-05 19:20:19.312  1430 23850 I am_anr  : [0,1815,com.android.systemui,684244493,Input dispatching timed out (26d9d1f NavigationBar0 (server) is not responding. Waited 5001ms for MotionEvent)]</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 查看 ANR 时的 CPU 以及 IO 率：</strong></p>
+<p>如果是 CPU 使用率高，可能是进程分配不了时间片导致的；如果是 IO 使用路高，可能是文件操作或数据库操作导致的。</p>
+<p>这一步一般来说能基本定位是什么造成了 ANR，是 IO 高还是 CPU 高，如两者都不是，需进入第三步 trace 日志分析环节 查看 mobilelog 文件夹下的 main_log,搜索关键字”ANR in”,可以看到当时的 CPU 以及 IO 率。</p>
+<p>这一个环节一般来讲主要是看发生 ANR 时的 CPU 使用情况，CPU 是否吃紧，<br>还有需要注意 iowait 的占有率，如果占比比较高，则排查的方向要倾向与读取文件操作有关的信息，可以看 trace 日志中有没有一些读取文件或者操作 SD 卡的动作</p>
+<p><strong>3. 分析 ANR 时的堆栈：</strong></p>
+<p>查看 mobilelog 文件夹下的 main_log，搜索关键字”ANR in”，再结合 event log 里 ANR 发生的时间点，分析发生 ANR 时的上下文。</p>
+<h2 id="常见场景分析"><a href="#常见场景分析" class="headerlink" title="常见场景分析"></a>常见场景分析</h2><h3 id="主线程死锁"><a href="#主线程死锁" class="headerlink" title="主线程死锁"></a>主线程死锁</h3><h3 id="卡在-IO-操作"><a href="#卡在-IO-操作" class="headerlink" title="卡在 IO 操作"></a>卡在 IO 操作</h3><p>ANRManager: 100% TOTAL: 2% user + 2.1% kernel + 95% iowait + 0.1% softirq</p>
+<h3 id="主线程有耗时的动作"><a href="#主线程有耗时的动作" class="headerlink" title="主线程有耗时的动作"></a>主线程有耗时的动作</h3><p>这种情况是 ANR 类型问题里遇到最多的，比如读写文件，访问数据库和保存到 SP（同步），都可能造成主线程堵塞。一般来讲看当时的 CPU 使用情况会发现 user 占比较高。</p>
+<h3 id="主线程-Binder-调用等待超时"><a href="#主线程-Binder-调用等待超时" class="headerlink" title="主线程 Binder 调用等待超时"></a>主线程 Binder 调用等待超时</h3><h3 id="Binder-线程池被占满"><a href="#Binder-线程池被占满" class="headerlink" title="Binder 线程池被占满"></a>Binder 线程池被占满</h3><p>系统对每个 process 最多分配 15 个 binder 线程，这个是谷歌的设计（&#x2F;frameworks&#x2F;native&#x2F;libs&#x2F;binder&#x2F;ProcessState.cpp)。<br>如果另一个 process 发送太多重复 binder 请求，那么就会导致接收端 binder 线程被占满，从而处理不了其它的 binder 请求。这时候请求端发起的请求就会阻塞等待了(未设置异步请求的前提下)，这本身就是系统的一个限制，如果应用未按照系统的要求来实现对应逻辑，那么就会造成问题。<br>判断 Binder 是否用完，可以在 trace 中搜索关键字”binder_f”，如果搜索到则表示已经用完，然后就要找 log 其他地方看是谁一直在消耗 binder 或者是有死锁发生。</p>
+<h3 id="JE-或者-NE-导致-ANR"><a href="#JE-或者-NE-导致-ANR" class="headerlink" title="JE 或者 NE 导致 ANR"></a>JE 或者 NE 导致 ANR</h3><p>因为 JE&#x2F;NE 发生时会去 dump 一大堆异常信息，本身也会加重 CPU loading，修改完异常后再来看 ANR 是否还存在，如果还存在，那么就看 trace 堆栈，如果不存在，则可以基本判定是 JE 或 NE 导致。</p>
+<h3 id="只存在于-Monkey-测试下"><a href="#只存在于-Monkey-测试下" class="headerlink" title="只存在于 Monkey 测试下"></a>只存在于 Monkey 测试下</h3><p>有些问题是只有在 Monkey 环境下才能跑出来，平时的 user 版本用户使用是不会出现的，这种问题的话就没有改动的意义。</p>
+<p>比如下面这个例子：</p>
+<p>ActivityManager: Not finishing activity because controller resumed<br>03-18 07:25:50.901 810 870 I am_anr : [0,25443,android.process.media,1086897733,Input dispatching timed out (Waiting because no window has focus but there is a focused application that may eventually add a window when it finishes starting up.)]</p>
+<p>发生这个 ANR 的原因是 Contoller 将 resume 的操作给拦截了, 导致 Focus 不过去, 从而导致 ANR，User 版本不会有 Contoller, 所以不会出现这个 ANR. 所以这个 ANR 可以忽略。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/ANR/" rel="tag"># ANR</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/05/02/Kotlin-%E5%8D%8F%E7%A8%8B/" rel="prev" title="Kotlin 协程">
+                  <i class="fa fa-chevron-left"></i> Kotlin 协程
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/07/02/Android-Trace/" rel="next" title="Android Trace">
+                  Android Trace <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本文分析安装器提交 Apk 到 PMS 进行安装的过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PMS 安装 Apk 流程">
+<meta property="og:url" content="http://example.com/2022/06/14/PMS-%E5%AE%89%E8%A3%85-Apk-%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="本文分析安装器提交 Apk 到 PMS 进行安装的过程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-06-14T15:43:37.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.121Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Frameworks">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2022/06/14/PMS-%E5%AE%89%E8%A3%85-Apk-%E6%B5%81%E7%A8%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/06/14/PMS-%E5%AE%89%E8%A3%85-Apk-%E6%B5%81%E7%A8%8B/","path":"2022/06/14/PMS-安装-Apk-流程/","title":"PMS 安装 Apk 流程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>PMS 安装 Apk 流程 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/14/PMS-%E5%AE%89%E8%A3%85-Apk-%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="PMS 安装 Apk 流程 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PMS 安装 Apk 流程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-06-14 23:43:37" itemprop="dateCreated datePublished" datetime="2022-06-14T23:43:37+08:00">2022-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本文分析安装器提交 Apk 到 PMS 进行安装的过程。</p>
+<span id="more"></span>
+
+<p>安装器创建 Session 的任务完成后开始安装操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// frameworks/base/packages/PackageInstaller/src/com/android/packageinstaller/InstallInstalling.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onPostExecute</span><span class="params">(PackageInstaller.Session session)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (session != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="type">Intent</span> <span class="variable">broadcastIntent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>(BROADCAST_ACTION);</span><br><span class="line">        broadcastIntent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);</span><br><span class="line">        broadcastIntent.setPackage(getPackageName());</span><br><span class="line">        broadcastIntent.putExtra(EventResultPersister.EXTRA_ID, mInstallId);</span><br><span class="line"></span><br><span class="line">        <span class="type">PendingIntent</span> <span class="variable">pendingIntent</span> <span class="operator">=</span> PendingIntent.getBroadcast(</span><br><span class="line">                InstallInstalling.<span class="built_in">this</span>,</span><br><span class="line">                mInstallId,</span><br><span class="line">                broadcastIntent,</span><br><span class="line">                PendingIntent.FLAG_UPDATE_CURRENT);</span><br><span class="line"></span><br><span class="line">        session.commit(pendingIntent.getIntentSender());</span><br><span class="line">        mCancelButton.setEnabled(<span class="literal">false</span>);</span><br><span class="line">        setFinishOnTouchOutside(<span class="literal">false</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        getPackageManager().getPackageInstaller().abandonSession(mSessionId);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!isCancelled()) &#123;</span><br><span class="line">            launchFailure(PackageManager.INSTALL_FAILED_INVALID_APK, <span class="literal">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>安装任务走到 PackageInstallerSession。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PackageInstallerSession.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Handler.<span class="type">Callback</span> <span class="variable">mHandlerCallback</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Handler</span>.Callback() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">handleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (msg.what) &#123;</span><br><span class="line">            <span class="keyword">case</span> MSG_STREAM_VALIDATE_AND_COMMIT:</span><br><span class="line">                handleStreamValidateAndCommit();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> MSG_INSTALL:</span><br><span class="line">                handleInstall();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> MSG_ON_PACKAGE_INSTALLED:</span><br><span class="line">                sendOnPackageInstalled(mContext, statusReceiver, ...);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> MSG_SESSION_VERIFICATION_FAILURE:</span><br><span class="line">                <span class="comment">// ...</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">commit</span><span class="params">(<span class="meta">@NonNull</span> IntentSender statusReceiver, <span class="type">boolean</span> forTransfer)</span> &#123;</span><br><span class="line">    dispatchStreamValidateAndCommit();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">dispatchStreamValidateAndCommit</span><span class="params">()</span> &#123;</span><br><span class="line">    mHandler.obtainMessage(MSG_STREAM_VALIDATE_AND_COMMIT).sendToTarget();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleStreamValidateAndCommit</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">allSessionsReady</span> <span class="operator">=</span> streamValidateAndCommit();</span><br><span class="line">    <span class="keyword">if</span> (!allSessionsReady) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    mHandler.obtainMessage(MSG_INSTALL).sendToTarget();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleInstall</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (params.isStaged) &#123;</span><br><span class="line">        mStagingManager.commitSession(<span class="built_in">this</span>);</span><br><span class="line">        destroyInternal();</span><br><span class="line">        dispatchSessionFinished(PackageManager.INSTALL_SUCCEEDED, <span class="string">&quot;Session staged&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (isApexInstallation()) &#123;</span><br><span class="line">        destroyInternal();</span><br><span class="line">        dispatchSessionFinished(PackageManager.INSTALL_FAILED_INTERNAL_ERROR,</span><br><span class="line">                <span class="string">&quot;APEX packages can only be installed using staged sessions.&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    List&lt;PackageInstallerSession&gt; childSessions = getChildSessionsNotLocked();</span><br><span class="line">    installNonStagedLocked(childSessions);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">installNonStagedLocked</span><span class="params">(List&lt;PackageInstallerSession&gt; childSessions)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> PackageManagerService.<span class="type">ActiveInstallSession</span> <span class="variable">installingSession</span> <span class="operator">=</span> makeSessionActiveLocked();</span><br><span class="line">    <span class="keyword">if</span> (isMultiPackage()) &#123;</span><br><span class="line">        <span class="comment">// 默认 false</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mPm.installStage(installingSession);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> PackageManagerService.ActiveInstallSession <span class="title function_">makeSessionActiveLocked</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="keyword">final</span> IPackageInstallObserver2 localObserver;</span><br><span class="line">    <span class="keyword">if</span> (isApexInstallation()) &#123;</span><br><span class="line">        localObserver = <span class="literal">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 注册回调</span></span><br><span class="line">        localObserver = <span class="keyword">new</span> <span class="title class_">IPackageInstallObserver2</span>.Stub() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onUserActionRequired</span><span class="params">(Intent intent)</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onPackageInstalled</span><span class="params">(String basePackageName, <span class="type">int</span> returnCode, String msg,</span></span><br><span class="line"><span class="params">                    Bundle extras)</span> &#123;</span><br><span class="line">                <span class="comment">// Apk 安装成功，删除临时文件</span></span><br><span class="line">                destroyInternal();</span><br><span class="line">                <span class="comment">// 通知安装 Session 任务完成</span></span><br><span class="line">                dispatchSessionFinished(returnCode, msg, extras);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">PackageManagerService</span>.ActiveInstallSession(mPackageName, localObserver, ...);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">dispatchSessionFinished</span><span class="params">(<span class="type">int</span> returnCode, String msg, Bundle extras)</span> &#123;</span><br><span class="line">    <span class="comment">// 安装器提交 Session 时传递的 PendingIntent</span></span><br><span class="line">    <span class="keyword">final</span> IntentSender statusReceiver;</span><br><span class="line">    <span class="keyword">if</span> (statusReceiver != <span class="literal">null</span>) &#123;</span><br><span class="line">        mHandler.obtainMessage(MSG_ON_PACKAGE_INSTALLED, args).sendToTarget();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">success</span> <span class="operator">=</span> (returnCode == PackageManager.INSTALL_SUCCEEDED);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 发送广播，通知 Launcher</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">isNewInstall</span> <span class="operator">=</span> extras == <span class="literal">null</span> || !extras.getBoolean(Intent.EXTRA_REPLACING);</span><br><span class="line">    <span class="keyword">if</span> (success &amp;&amp; isNewInstall &amp;&amp; mPm.mInstallerService.okToSendBroadcasts()</span><br><span class="line">            &amp;&amp; (params.installFlags &amp; PackageManager.INSTALL_DRY_RUN) == <span class="number">0</span>) &#123;</span><br><span class="line">        mPm.sendSessionCommitBroadcast(generateInfoScrubbed(<span class="literal">true</span> <span class="comment">/*icon*/</span>), userId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sendOnPackageInstalled</span><span class="params">(Context context, IntentSender target, ...)</span>&#123;</span><br><span class="line">    <span class="comment">// 显示安装成功通知</span></span><br><span class="line">    <span class="keyword">if</span> (PackageManager.INSTALL_SUCCEEDED == returnCode &amp;&amp; showNotification) &#123;</span><br><span class="line">        <span class="type">Notification</span> <span class="variable">notification</span> <span class="operator">=</span> PackageInstallerService.buildSuccessNotification(context, ...);</span><br><span class="line">        <span class="type">NotificationManager</span> <span class="variable">notificationManager</span> <span class="operator">=</span> (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);</span><br><span class="line">        notificationManager.notify(basePackageName, ..., notification);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">Intent</span> <span class="variable">fillIn</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>();</span><br><span class="line">        <span class="comment">// 设置 Intent 参数</span></span><br><span class="line">        <span class="comment">// 发送 PendingIntent，通知安装器安装成功</span></span><br><span class="line">        target.sendIntent(context, <span class="number">0</span>, fillIn, <span class="literal">null</span>, <span class="literal">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用到 PMS <code>mPm.installStage(installingSession)</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PackageManagerService.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PackageHandler</span> <span class="keyword">extends</span> <span class="title class_">Handler</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">        doHandleMessage(msg);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">doHandleMessage</span><span class="params">(Message msg)</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (msg.what) &#123;</span><br><span class="line">            <span class="keyword">case</span> INIT_COPY: &#123;</span><br><span class="line">                <span class="type">HandlerParams</span> <span class="variable">params</span> <span class="operator">=</span> (HandlerParams) msg.obj;</span><br><span class="line">                <span class="keyword">if</span> (params != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// 分别调用 handleStartCopy() 和 handleReturnCode() 方法</span></span><br><span class="line">                    params.startCopy();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">case</span> POST_INSTALL: &#123;</span><br><span class="line">                <span class="type">PostInstallData</span> <span class="variable">data</span> <span class="operator">=</span> mRunningInstalls.get(msg.arg1);</span><br><span class="line">                handlePackagePostInstall(parentRes, args.observer, ...);</span><br><span class="line">            &#125; <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">installStage</span><span class="params">(List&lt;ActiveInstallSession&gt; children)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> mHandler.obtainMessage(INIT_COPY);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">MultiPackageInstallParams</span> <span class="variable">params</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MultiPackageInstallParams</span>(UserHandle.ALL, children);</span><br><span class="line">    msg.obj = params;</span><br><span class="line">    mHandler.sendMessage(msg);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleStartCopy</span><span class="params">()</span> &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleReturnCode</span><span class="params">()</span> &#123;</span><br><span class="line">    processPendingInstall(mArgs, mRet);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">processPendingInstall</span><span class="params">(<span class="keyword">final</span> InstallArgs args, <span class="keyword">final</span> <span class="type">int</span> currentStatus)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (args.mMultiPackageInstallParams != <span class="literal">null</span>) &#123;</span><br><span class="line">        args.mMultiPackageInstallParams.tryProcessInstallRequest(args, currentStatus);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="type">PackageInstalledInfo</span> <span class="variable">res</span> <span class="operator">=</span> createPackageInstalledInfo(currentStatus);</span><br><span class="line">        processInstallRequestsAsync(</span><br><span class="line">                res.returnCode == PackageManager.INSTALL_SUCCEEDED,</span><br><span class="line">                Collections.singletonList(<span class="keyword">new</span> <span class="title class_">InstallRequest</span>(args, res)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">processInstallRequestsAsync</span><span class="params">(<span class="type">boolean</span> success,</span></span><br><span class="line"><span class="params">        List&lt;InstallRequest&gt; installRequests)</span> &#123;</span><br><span class="line">    mHandler.post(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (success) &#123;</span><br><span class="line">            <span class="keyword">for</span> (InstallRequest request : installRequests) &#123;</span><br><span class="line">                request.args.doPreInstall(request.installResult.returnCode);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">synchronized</span> (mInstallLock) &#123;</span><br><span class="line">                installPackagesTracedLI(installRequests);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">for</span> (InstallRequest request : installRequests) &#123;</span><br><span class="line">                request.args.doPostInstall(</span><br><span class="line">                        request.installResult.returnCode, request.installResult.uid);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (InstallRequest request : installRequests) &#123;</span><br><span class="line">            restoreAndPostInstall(request.args.user.getIdentifier(), ...);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">restoreAndPostInstall</span><span class="params">(<span class="type">int</span> userId, ...)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (res.returnCode == PackageManager.INSTALL_SUCCEEDED &amp;&amp; doRestore) &#123;</span><br><span class="line">        doRestore = performBackupManagerRestore(userId, token, res);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!doRestore) &#123;</span><br><span class="line">        <span class="type">Message</span> <span class="variable">msg</span> <span class="operator">=</span> mHandler.obtainMessage(POST_INSTALL, token, <span class="number">0</span>);</span><br><span class="line">        mHandler.sendMessage(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>发送 <code>POST_INSTALL</code> 消息，调用 handlePackagePostInstall() 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PackageManagerService.java</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handlePackagePostInstall</span><span class="params">(PackageInstalledInfo res, IPackageInstallObserver2 installObserver, ...)</span>&#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">succeeded</span> <span class="operator">=</span> res.returnCode == PackageManager.INSTALL_SUCCEEDED;</span><br><span class="line">    <span class="keyword">if</span> (succeeded) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    notifyInstallObserver(res, installObserver);</span><br><span class="line">    <span class="keyword">final</span> <span class="type">boolean</span> <span class="variable">deferInstallObserver</span> <span class="operator">=</span> succeeded &amp;&amp; update &amp;&amp; !killApp;</span><br><span class="line">    <span class="keyword">if</span> (deferInstallObserver) &#123;</span><br><span class="line">        scheduleDeferredNoKillInstallObserver(res, installObserver);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        notifyInstallObserver(res, installObserver);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">notifyInstallObserver</span><span class="params">(PackageInstalledInfo info, IPackageInstallObserver2 installObserver)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (installObserver != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="type">Bundle</span> <span class="variable">extras</span> <span class="operator">=</span> extrasForInstallResult(info);</span><br><span class="line">        installObserver.onPackageInstalled(info.name, ...);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Frameworks/" rel="tag"># Frameworks</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/06/12/Android-ContentProvider-Unknown-authority-%E9%97%AE%E9%A2%98/" rel="prev" title="Android ContentProvider Unknown authority 问题">
+                  <i class="fa fa-chevron-left"></i> Android ContentProvider Unknown authority 问题
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/06/28/Android-%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="next" title="Android 检查权限源码分析">
+                  Android 检查权限源码分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

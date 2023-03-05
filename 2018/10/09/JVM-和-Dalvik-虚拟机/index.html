@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Java 虚拟机 Java 虚拟机运行的是 Java字节码。 Java 虚拟机基于栈。 基于栈的机器必须使用指令来载入和操作栈上数据，所需指令更多。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM 和 Dalvik 虚拟机">
+<meta property="og:url" content="http://example.com/2018/10/09/JVM-%E5%92%8C-Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="Java 虚拟机 Java 虚拟机运行的是 Java字节码。 Java 虚拟机基于栈。 基于栈的机器必须使用指令来载入和操作栈上数据，所需指令更多。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-10-09T15:31:30.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="JMV">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2018/10/09/JVM-%E5%92%8C-Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2018/10/09/JVM-%E5%92%8C-Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA/","path":"2018/10/09/JVM-和-Dalvik-虚拟机/","title":"JVM 和 Dalvik 虚拟机"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>JVM 和 Dalvik 虚拟机 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">1.</span> <span class="nav-text">Java 虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">Dalvik 虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dalvik-%E5%92%8C-JVM-%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.</span> <span class="nav-text">Dalvik 和 JVM 虚拟机的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ART"><span class="nav-number">4.</span> <span class="nav-text">ART</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/10/09/JVM-%E5%92%8C-Dalvik-%E8%99%9A%E6%8B%9F%E6%9C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="JVM 和 Dalvik 虚拟机 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM 和 Dalvik 虚拟机
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-10-09 23:31:30" itemprop="dateCreated datePublished" datetime="2018-10-09T23:31:30+08:00">2018-10-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="Java-虚拟机"><a href="#Java-虚拟机" class="headerlink" title="Java 虚拟机"></a>Java 虚拟机</h2><ol>
+<li>Java 虚拟机运行的是 Java<code>字节码</code>。</li>
+<li>Java 虚拟机基于<code>栈</code>。 基于栈的机器必须使用指令来载入和操作栈上数据，所需指令更多。</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="Dalvik-虚拟机"><a href="#Dalvik-虚拟机" class="headerlink" title="Dalvik 虚拟机"></a>Dalvik 虚拟机</h2><p>Dalvik 是 Google 公司自己设计用于<code>Android平台的虚拟机</code>，在 Android 4.4 及其以上平台使用。</p>
+<p>它可以支持已转换为 <code>dex 格式</code> 的 Java 应用程序的运行。dex 格式是专为 Dalvik 设计的一种压缩格式，适合内存和处理器速度有限的系统。<br>Dalvik 经过优化，允许在有限的内存中同时运行多个虚拟机的实例，并且每一个 Dalvik 应用作为一个独立的 Linux 进程执行。独立的进程可以防止在虚拟机崩溃的时候所有程序都被关闭。</p>
+<p>在 Dalvik 下，应用每次运行的时候，<code>字节码都需要通过即时编译器（just in time ，JIT）转换为机器码</code>，这会拖慢应用的运行效率。<br>自 Android 2.2 开始，Dalvik 支持 JIT（just-in-time，即时编译技术）。</p>
+<p>优点：</p>
+<ol>
+<li>系统性能的显著提升；</li>
+<li>应用启动更快、运行更快、体验更流畅、触感反馈更及时；</li>
+<li>更长的电池续航能力；</li>
+<li>支持更低的硬件；</li>
+<li>GC 优化；</li>
+<li>提供全面的 Debug 特性；</li>
+</ol>
+<p>缺点：</p>
+<ol>
+<li>机器码占用更大的存储空间。字节码变为机器码之后，可能会增加 10%-20%</li>
+<li>应用的安装速度慢，安装时间更长。</li>
+</ol>
+<h2 id="Dalvik-和-JVM-虚拟机的区别"><a href="#Dalvik-和-JVM-虚拟机的区别" class="headerlink" title="Dalvik 和 JVM 虚拟机的区别"></a>Dalvik 和 JVM 虚拟机的区别</h2><ol>
+<li>JVM 是基于栈的；Dalvik 是基于寄存器的。</li>
+<li>JVM 运行 java 字节码文件；Dalvik 运行 dex 文件。</li>
+</ol>
+<p>一般来说，基于堆栈的机器必须使用指令才能从堆栈上的加载和操作数据。因此，相对基于寄存器的机器，它们需要更多的指令才能实现相同的性能。但是基于寄存器机器上的指令必须经过编码，因此，它们的指令往往更大。</p>
+<p>Dalvik 虚拟机既不支持 Java SE 也不支持 Java ME 类库(如：Java 类，AWT 和 Swing 都不支持)。 相反,它使用自己建立的类库（Apache Harmony Java 的一个子集）。</p>
+<h2 id="ART"><a href="#ART" class="headerlink" title="ART"></a>ART</h2><p>ART（Android Runtime） 是 Android 上的应用和部分系统服务使用的托管式运行时。 Android 5.0 及以上平台使用的虚拟机技术。</p>
+<p>与 Dalvik 虚拟机使用的 JIT 不同，ART 引入了 AOT 这种预编译技术，在应用程序安装的过程中，ART 使用设备自带的 <code>dex2oat</code> 命令将所有的字节码重新编译成了机器码。</p>
+<p>AOT（Ahead-Of-Time）即预编译，应用在第一次安装的时候，把字节码预先编译成机器码。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Android_Runtime">[1] Android_Runtime - wiki</a><br><a target="_blank" rel="noopener" href="https://www.kancloud.cn/alex_wsc/androids/472173">[2] Dalvik 虚拟机和 ART 虚拟机 - 罗升阳</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JMV/" rel="tag"># JMV</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/10/05/Android-ArrayMap/" rel="prev" title="Android ArrayMap">
+                  <i class="fa fa-chevron-left"></i> Android ArrayMap
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/10/20/Java-synchronized-%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/" rel="next" title="Java synchronized 同步机制">
+                  Java synchronized 同步机制 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

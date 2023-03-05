@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Binder 是 Android 系统的一种跨进程通信机制（IPC）。AIDL 和 Messenger 也是基于 Binder 实现的； 对于 Server，Binder 指的是 Binder 本地对象； 对于 Client，Binder 指的是 Binder 代理对象，它只是 Binder 本地对象的一个远程代理；对这个 Binder 代理对象的操作，会通过驱动最终转发到 Binder 本地对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Binder 机制">
+<meta property="og:url" content="http://example.com/2021/02/10/Android-Binder-%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="Binder 是 Android 系统的一种跨进程通信机制（IPC）。AIDL 和 Messenger 也是基于 Binder 实现的； 对于 Server，Binder 指的是 Binder 本地对象； 对于 Client，Binder 指的是 Binder 代理对象，它只是 Binder 本地对象的一个远程代理；对这个 Binder 代理对象的操作，会通过驱动最终转发到 Binder 本地对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder4.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder-arch.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder6.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder-communication.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder2.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder1.png">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder7.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder3.png">
+<meta property="article:published_time" content="2021-02-10T09:10:36.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.115Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Binder">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder4.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/10/Android-Binder-%E6%9C%BA%E5%88%B6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2021/02/10/Android-Binder-%E6%9C%BA%E5%88%B6/","path":"2021/02/10/Android-Binder-机制/","title":"Android Binder 机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android Binder 机制 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Binder-%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">Binder 架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Binder-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">Binder 实现原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Binder-%E9%80%9A%E4%BF%A1%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">Binder 通信模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BINDER-WRITE-READ-%E4%B9%8B%E5%86%99%E6%93%8D%E4%BD%9C"><span class="nav-number">3.1.</span> <span class="nav-text">BINDER_WRITE_READ 之写操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BINDER-WRITE-READ%EF%BC%9A%E4%BB%8E-Binder-%E8%AF%BB%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="nav-number">3.2.</span> <span class="nav-text">BINDER_WRITE_READ：从 Binder 读出数据</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/10/Android-Binder-%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android Binder 机制 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android Binder 机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-10 17:10:36" itemprop="dateCreated datePublished" datetime="2021-02-10T17:10:36+08:00">2021-02-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/IPC/" itemprop="url" rel="index"><span itemprop="name">IPC</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li>Binder 是 Android 系统的一种跨进程通信机制（IPC）。AIDL 和 Messenger 也是基于 Binder 实现的；</li>
+<li>对于 Server，Binder 指的是 Binder 本地对象；</li>
+<li>对于 Client，Binder 指的是 Binder 代理对象，它只是 Binder 本地对象的一个远程代理；对这个 Binder 代理对象的操作，会通过驱动最终转发到 Binder 本地对象上去完成；</li>
+<li>对于传输过程而言，Binder 是可以进行跨进程传递的对象；Binder 驱动会对具有跨进程传递能力的对象做特殊处理，即自动完成代理对象和本地对象的转换。</li>
+</ul>
+<span id="more"></span>
+
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder4.png" alt="Binder 的优点"></p>
+<p>Linux 系统调用：</p>
+<ul>
+<li>copy_from_user() &#x2F;&#x2F;将数据从用户空间拷贝到内核空间</li>
+<li>copy_to_user() &#x2F;&#x2F;将数据从内核空间拷贝到用户空间</li>
+</ul>
+<h2 id="Binder-架构"><a href="#Binder-架构" class="headerlink" title="Binder 架构"></a>Binder 架构</h2><p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder-arch.jpg" alt="Binder 架构"></p>
+<p>Binder 在整个 Android 系统中有这举足轻重的地位，在 Native 层和 Java 层都有一套基于 C&#x2F;S 的架构。</p>
+<p>Binder 线程池：每个 Server 进程在启动时会创建一个 binder 线程池，并向其中注册一个 Binder 线程；之后 Server 进程也可以向 binder 线程池注册新的线程，或者 Binder 驱动在探测到没有空闲 binder 线程时会主动向 Server 进程注册新的的 binder 线程。对于一个 Server 进程有一个最大 Binder 线程数限制，默认为 16，例如 Android 的 system_server 进程就存在 16 个线程。对于所有 Client 端进程的 binder 请求都是交由 Server 端进程的 binder 线程来处理的。</p>
+<h2 id="Binder-实现原理"><a href="#Binder-实现原理" class="headerlink" title="Binder 实现原理"></a>Binder 实现原理</h2><p><code>依靠 Linux 的动态内核可加载模块（Loadable Kernel Module，LKM）和内存映射。</code></p>
+<ul>
+<li>LKM: Android 系统通过动态添加一个内核模块运行在内核空间，用户进程之间通过这个内核模块作为桥梁来实现通信。这个内核模块就叫 Binder 驱动。</li>
+<li>内存映射：通过 mmap() 系统调用实现。mmap() 通常是用在有物理介质的文件系统上的，而 Binder 并不存在物理介质，因此 Binder 驱动使用 mmap() 并不是为了在物理介质和用户空间之间建立映射，而是用来在内核空间创建数据接收的缓存空间。</li>
+</ul>
+<p>一次完整的 Binder IPC 通信过程如下：</p>
+<ol>
+<li>Binder 驱动在内核空间创建一个数据接收缓存区；</li>
+<li>接着在内核空间开辟一块内核缓存区，建立内核缓存区和内核中数据接收缓存区之间的映射关系，以及内核中数据接收缓存区和接收进程用户空间地址的映射关系；</li>
+<li>发送方进程通过系统调用 copy_from_user() 将数据 copy 到内核中的内核缓存区，由于内核缓存区和接收进程的用户空间存在内存映射，因此也就相当于把数据发送到了接收进程的用户空间，这样便完成了一次进程间的通信。</li>
+</ol>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder6.jpg" alt="Binder IPC 原理"></p>
+<h2 id="Binder-通信模型"><a href="#Binder-通信模型" class="headerlink" title="Binder 通信模型"></a>Binder 通信模型</h2><p>Binder 是基于 C&#x2F;S 架构的。由一系列的组件组成，包括 Client、Server、ServiceManager、Binder 驱动。其中 Client、Server、ServiceManager 运行在用户空间，Binder 驱动运行在内核空间。其中 ServiceManager 和 Binder 驱动由系统提供，而 Client 和 Server 由应用程序来实现。<br>Client、Server 和 ServiceManager 均是通过系统调用 open、mmap 和 ioctl 系统调用来访问 &#x2F;dev&#x2F;binder，从而实现与 Binder 驱动的交互来间接的实现跨进程通信。</p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder-communication.jpg" alt="Binder 通信模型"></p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder2.jpg" alt="Binder 通信模型"></p>
+<ol>
+<li>Client、Server 和 ServiceManager 实现在用户空间中，Binder 驱动程序实现在内核空间；</li>
+<li>Binder 驱动程序和 ServiceManager 在 Android 平台中已经实现，开发者只需要在用户空间实现自己的 Client 和 Server；</li>
+<li>Binder 驱动负责进程之间 Binder 通信的建立，Binder 在进程之间的传递，Binder 引用计数管理，数据包在进程之间的传递和交互等一系列底层支持。</li>
+<li>ServiceManager 和 DNS 类似，作用是<code>将字符形式的 Binder 名字转化成 Client 中对该 Binder 的引用，使得 Client 能够通过 Binder 的名字获得对 Binder 实体的引用。</code>注册了名字的 Binder 叫实名 Binder。<br>Server 创建了 Binder，并为它起一个字符形式，将这个 Binder 实体连同名字一起以数据包的形式通过 Binder 驱动发送给 ServiceManager，通知 ServiceManager 注册一个具体名称的 Binder，它位于某个 Server 中。<br>驱动为这个穿越进程边界的 Binder 创建位于内核中的实体节点以及 ServiceManager 对实体的引用，将名字以及新建的引用打包传给 ServiceManager。ServiceManger 收到数据后从中取出名字和引用填入查找表。<br>ServiceManager 提供的 Binder 比较特殊，它没有名字也不需要注册。当一个进程使用 <code>BINDER_SET_CONTEXT_MGR</code> 命令将自己注册成 ServiceManager 时，Binder 驱动会自动为它创建 Binder 实体。这个 Binder 实体的引用在所有 Client 中都固定为 0 而无需通过其它手段获得。<br>一个 Server 想要向 ServiceManager 注册自己的 Binder 就必须通过这个 0 号引用和 ServiceManager 的 Binder 通信。</li>
+</ol>
+<p>大致通信过程如下：</p>
+<ol>
+<li>一个进程使用 <code>BINDER_SET_CONTEXT_MGR</code> 命令通过 Binder 驱动将自己注册成为 ServiceManager；</li>
+<li>Server 通过驱动向 ServiceManager 中注册 Binder，表明可以对外提供服务。驱动为这个 Binder 创建位于内核中的实体节点以及 ServiceManager 对实体的引用，将名字以及新建的引用打包传给 ServiceManager 并填入查找表；</li>
+<li>Client 通过名字，在 Binder 驱动的帮助下从 ServiceManager 中获取到对 Binder 实体的引用，通过这个引用就能实现和 Server 进程的通信。</li>
+</ol>
+<p><strong>ServiceManager 是如何注册 Binder 的？</strong></p>
+<ul>
+<li>当 Android 系统启动后，会创建一个名称为 servicemanager 的进程，这个进程通过一个约定的命令 BINDER_SET_CONTEXT_MGR 向 Binder 驱动注册，申请成为 ServiceManager，Binder 驱动会自动为 ServiceManager 创建一个 Binder 实体；</li>
+<li>并且这个 Binder 实体的引用在所有的 Client 中都为 0，也就说各个 Client 通过这个 0 号引用就可以和 ServiceManager 进行通信。Server 通过 0 号引用向 ServiceManager 进行注册，Client 通过 0 号引用就可以获取到要通信的 Server 的 Binder 引用。</li>
+</ul>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder1.png" alt="Binder 组成"></p>
+<ol>
+<li>Android Binder 框架分为客户端、服务端以及 Binder 驱动。</li>
+<li>客户端通过 Binder 驱动获取到<code>服务端的代理对象</code>，调用代理对象的方法，会间接调用 <code>transact()</code> 发送消息至服务端。</li>
+<li><code>服务端是 Binder 类的对象</code>。该对象一旦创建，内部会启动一个隐藏线程来接收 Binder 驱动发送的消息。收到消息后，会执行 <code>Binder#onTransact()</code> 函数，并按照该函数的参数执行不同的服务端端代码。</li>
+<li>Binder 驱动，该对象也为 Binder 类的实例，客户端通过该对象访问远程服务。</li>
+</ol>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder7.jpg" alt="Binder 驱动模型"></p>
+<p><strong>Binder 通信中的代理模式：</strong></p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/binder/binder3.png" alt="Binder 代理"><br>A 进程想要 B 进程中某个对象是如何实现的呢？毕竟它们分属不同的进程，A 进程没法直接使用 B 进程中的 对象。<br>前面我们介绍过跨进程通信的过程都有 Binder 驱动的参与，因此在数据流经 Binder 驱动的时候驱动会对数据做一层转换。当 A 进程想要获取 B 进程中的 object 时，驱动并不会真的把 object 返回给 A，而是返回了一个跟 object 看起来一模一样的代理对象 objectProxy，这个 objectProxy 具有和 object 一摸一样的方法，但是这些方法并没有 B 进程中 object 对象那些方法的能力，这些方法只需要把请求参数交给驱动即可。对于 A 进程来说和直接调用 object 中的方法是一样的。<br>当 Binder 驱动接收到 A 进程的消息后，发现这是个 objectProxy 就去查询自己维护的表单，一查发现这是 B 进程 object 的代理对象。于是就会去通知 B 进程调用 object 的方法，并要求 B 进程把返回结果发给自己。当驱动拿到 B 进程的返回结果后就会转发给 A 进程，一次通信就完成了。</p>
+<h3 id="BINDER-WRITE-READ-之写操作"><a href="#BINDER-WRITE-READ-之写操作" class="headerlink" title="BINDER_WRITE_READ 之写操作"></a>BINDER_WRITE_READ 之写操作</h3><p>Binder 请求和应答数据是通过<code>BC_TRANSACTION/BC_REPLY</code>命令实现的。这对命令所承载的数据包由结构体 <code>struct binder_transaction_data</code> 定义。Binder 交互有同步和异步之分，利用 binder_transaction_data 中 flag 域区分。如果 flag 域的<code>TF_ONE_WAY位为 1 则为异步交互</code>，即 Client 端发送完请求交互即结束， Server 端不再返回 BC_REPLY 数据包；否则 Server 会返回 BC_REPLY 数据包，Client 端必须等待接收完该数据包方才完成一次交互。</p>
+<h3 id="BINDER-WRITE-READ：从-Binder-读出数据"><a href="#BINDER-WRITE-READ：从-Binder-读出数据" class="headerlink" title="BINDER_WRITE_READ：从 Binder 读出数据"></a>BINDER_WRITE_READ：从 Binder 读出数据</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/universus/article/details/6211589">[1] Android Bander 设计与实现 - 设计篇</a><br><a target="_blank" rel="noopener" href="https://github.com/rushgit/zhongwenjun.github.com/blob/master/blog/android/binder.md">[2] 关于 Binder，作为应用开发者你需要知道的全部</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1095486">[3] 写给 Android 应用工程师的 Binder 原理剖析</a><br><a target="_blank" rel="noopener" href="http://gityuan.com/2015/11/28/binder-summary/">[4] Binder 系列 10—总结</a><br><a target="_blank" rel="noopener" href="http://kernel.meizu.com/android-binder.html">[5] Android Binder - 魅族内核团队</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Binder/" rel="tag"># Binder</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/08/Android-Parcel/" rel="prev" title="Android Parcel">
+                  <i class="fa fa-chevron-left"></i> Android Parcel
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/14/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/" rel="next" title="冒泡排序">
+                  冒泡排序 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

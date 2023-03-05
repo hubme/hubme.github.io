@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="APT(Annotation Processing Tool) 即注解处理器，是一种注解处理工具，用来在编译期扫描和处理注解，通过注解来生成 Java 文件。而且只能生成新的源文件而不能修改已经存在的源文件。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 注解处理器">
+<meta property="og:url" content="http://example.com/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="APT(Annotation Processing Tool) 即注解处理器，是一种注解处理工具，用来在编译期扫描和处理注解，通过注解来生成 Java 文件。而且只能生成新的源文件而不能修改已经存在的源文件。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/java/apt.jpg">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/java/Java%20Compilation%20Process%20with%20Annotation%20Processing.jpg">
+<meta property="article:published_time" content="2018-07-10T06:51:55.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/java/apt.jpg">
+
+
+<link rel="canonical" href="http://example.com/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/","path":"2018/07/10/Java-注解处理器/","title":"Java 注解处理器"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Java 注解处理器 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E8%A7%A3"><span class="nav-number">1.</span> <span class="nav-text">注解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E6%97%B6-API-%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">编译时 API 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Element-%E5%85%83%E7%B4%A0"><span class="nav-number">2.1.</span> <span class="nav-text">Element 元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type-%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.2.</span> <span class="nav-text">Type 类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TypeMirror"><span class="nav-number">2.2.1.</span> <span class="nav-text">TypeMirror</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TypeVisitor"><span class="nav-number">2.2.2.</span> <span class="nav-text">TypeVisitor</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AbstractProcessor-%E7%B1%BB%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">AbstractProcessor 类介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8"><span class="nav-number">4.</span> <span class="nav-text">注册注解处理器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E5%BA%93"><span class="nav-number">5.</span> <span class="nav-text">相关库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JavaPoet"><span class="nav-number">5.1.</span> <span class="nav-text">JavaPoet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#auto-service"><span class="nav-number">5.2.</span> <span class="nav-text">auto-service</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Java 注解处理器 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java 注解处理器
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-07-10 14:51:55" itemprop="dateCreated datePublished" datetime="2018-07-10T14:51:55+08:00">2018-07-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>APT(Annotation Processing Tool) 即注解处理器，是一种注解处理工具，用来在编译期扫描和处理注解，通过注解来生成 Java 文件。而且只能生成新的源文件而不能修改已经存在的源文件。</p>
+<span id="more"></span>
+<p>通过在编译期间调用 <code>javac -processor</code> 命令可以掉起注解处理器。</p>
+<p>Java API 已经提供了扫描源码并解析注解的框架，开发者可以通过继承 <code>AbstractProcessor</code> 类并实现 <code>process()</code> 方法来实现自己的注解解析逻辑。</p>
+<p>APT 的原理是在注解了某些代码元素（如字段、函数、类等）后，在编译时编译器会检查 <code>AbstractProcessor</code> 的子类，并且自动调用其 <code>process()</code> 方法，然后将添加了指定注解的所有代码元素作为参数传递给该方法，开发者再根据注解元素在编译期输出对应的 Java 代码。</p>
+<h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The common interface extended by all annotation types.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Annotation</span> &#123;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">equals</span><span class="params">(Object obj)</span>;</span><br><span class="line">    <span class="type">int</span> <span class="title function_">hashCode</span><span class="params">()</span>;</span><br><span class="line">    String <span class="title function_">toString</span><span class="params">()</span>;</span><br><span class="line">    Class&lt;? <span class="keyword">extends</span> <span class="title class_">Annotation</span>&gt; annotationType();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Target(&#123;ElementType.TYPE, ElementType.FIELD,ElementType.PARAMETER,ElementType.METHOD&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> PrintMe &#123;</span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>@Retention</code> 定义注解的保留范围：</p>
+<ul>
+<li><strong>SOURCE</strong>：只作用于源码。可以用作 Lint、APT 这种工作在源码上的工具，会在编译环节被编译器主动舍弃，不会存在于 Class 文件中。</li>
+<li><strong>CLASS（默认）</strong>：作用于编译后的 Class 文件中，但不会在运行时被 JVM 加载。因为在编译环节中生效，如 class 编译成 dex 的过程中，就可以通过 transform 等手段加以利用。</li>
+<li><strong>RUNTIME</strong>：作用于运行时，生命周期最长，可用于反射。</li>
+</ul>
+<p><code>@Target</code> 定义注解作用的对象：</p>
+<ul>
+<li><strong>FIELD</strong>：成员变量，包含枚举类型的成员值。</li>
+<li><strong>METHOD</strong>：在方法上是修饰方法的返回值。</li>
+<li><strong>PARAMETER</strong>：修饰方法的参数。</li>
+<li><strong>TYPE</strong>：修饰类或接口。</li>
+</ul>
+<p><code>@Inhertited</code> 用来表明注解的继承特性。注解本身并不具备继承性，这里所说的继承指的是注解所标记的类或接口的继承关系。<br>举个例子，注解@Foo 被定义为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(TYPE)</span></span><br><span class="line"><span class="meta">@Rentention(RUNTIME)</span></span><br><span class="line"><span class="meta">@Inhertited</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Foo() &#123;</span><br><span class="line">    <span class="type">int</span> <span class="title function_">value</span><span class="params">()</span> <span class="keyword">default</span> -<span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Foo(value = 2)</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> <span class="keyword">extends</span> <span class="title class_">A</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">    <span class="type">Foo</span> <span class="variable">annotation</span> <span class="operator">=</span> B.class.getAnnotation(Foo.class);</span><br><span class="line">    <span class="comment">//如果去除 Foo 上的 @Inherited 注解，annotation == null</span></span><br><span class="line">    System.out.println(<span class="string">&quot;value: &quot;</span> + annotation.value());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编译时-API-介绍"><a href="#编译时-API-介绍" class="headerlink" title="编译时 API 介绍"></a>编译时 API 介绍</h2><h3 id="Element-元素"><a href="#Element-元素" class="headerlink" title="Element 元素"></a>Element 元素</h3><p>每个 Element 代表的是一个编程节点，比如一个包、类或方法。是语言级别的数据结构的静态表示。</p>
+<p><strong>Element:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> javax.lang.model.element;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a program element such as a package, class, or method.</span></span><br><span class="line"><span class="comment"> * Each element represents a static, language-level construct</span></span><br><span class="line"><span class="comment"> * (and not, for example, a runtime construct of the virtual machine).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Element</span> <span class="keyword">extends</span> <span class="title class_">javax</span>.lang.model.AnnotatedConstruct &#123;</span><br><span class="line">    <span class="comment">// 转化为 TypeMirror</span></span><br><span class="line">    TypeMirror <span class="title function_">asType</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 用以获取节点的具体类型</span></span><br><span class="line">    ElementKind <span class="title function_">getKind</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 持外部使用访问者模式进行访问操作</span></span><br><span class="line">    &lt;R, P&gt; R <span class="title function_">accept</span><span class="params">(ElementVisitor&lt;R, P&gt; v, P p)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取父节点</span></span><br><span class="line">    Element <span class="title function_">getEnclosingElement</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取子节点</span></span><br><span class="line">    List&lt;? <span class="keyword">extends</span> <span class="title class_">Element</span>&gt; getEnclosedElements();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Element 的类型包括：注解、类、接口、构造器、枚举、枚举值、异常参数、变量、初始化块、本地变量、方法、包、参数、资源变量、静态初始化块、泛型参数等</p>
+<p><strong>PackageElement:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a package program element.  Provides access to information</span></span><br><span class="line"><span class="comment"> * about the package and its members.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">PackageElement</span> <span class="keyword">extends</span> <span class="title class_">Element</span>, QualifiedNameable &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表示一个包程序元素。提供对有关包及其成员的信息的访问。</p>
+<p><strong>ExecutableElement:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a method, constructor, or initializer (static or</span></span><br><span class="line"><span class="comment"> * instance) of a class or interface, including annotation type</span></span><br><span class="line"><span class="comment"> * elements.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">ExecutableElement</span> <span class="keyword">extends</span> <span class="title class_">Element</span>, Parameterizable &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表示某个类或接口的方法、构造方法或初始化程序（静态或实例），包括注释类型元素。</p>
+<p><strong>VariableElement:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a field, enum constant, method or constructor</span></span><br><span class="line"><span class="comment"> * parameter, local variable, resource variable, or exception</span></span><br><span class="line"><span class="comment"> * parameter.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">VariableElement</span> <span class="keyword">extends</span> <span class="title class_">Element</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表示一个字段、enum 常量、方法或构造方法参数、局部变量或异常参数。</p>
+<p><strong>TypeElement:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a class or interface program element.  Provides access</span></span><br><span class="line"><span class="comment"> * to information about the type and its members.  Note that an enum</span></span><br><span class="line"><span class="comment"> * type is a kind of class and an annotation type is a kind of</span></span><br><span class="line"><span class="comment"> * interface.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">TypeElement</span> <span class="keyword">extends</span> <span class="title class_">Element</span>,</span><br><span class="line">    Parameterizable, QualifiedNameable &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表示一个类或接口程序元素。提供对有关类型及其成员的信息的访问。注意枚举类型是一种类，而注解类型是一种接口。</p>
+<p><strong>TypeParameterElement:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a formal type parameter of a generic class, interface, method,</span></span><br><span class="line"><span class="comment"> * or constructor element.</span></span><br><span class="line"><span class="comment"> * A type parameter declares a &#123;<span class="doctag">@link</span> TypeVariable&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">TypeParameterElement</span> <span class="keyword">extends</span> <span class="title class_">Element</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表示泛型类，接口，方法或构造函数元素的正式类型参数。 类型参数声明为 TypeVariable 。</p>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.java.annotation;  <span class="comment">// PackageElement</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Circle</span> &#123;  <span class="comment">// TypeElement</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> i; <span class="comment">// VariableElement</span></span><br><span class="line">    <span class="keyword">private</span> Triangle triangle; <span class="comment">// VariableElement</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// ExecuteableElement</span></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">Circle</span><span class="params">()</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ExecuteableElement</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">draw</span><span class="params">(String s)</span> &#123;<span class="comment">// s: VariableElement</span></span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Type-类型"><a href="#Type-类型" class="headerlink" title="Type 类型"></a>Type 类型</h3><p>位于 <code>javax.lang.model.type</code> 包下。</p>
+<h4 id="TypeMirror"><a href="#TypeMirror" class="headerlink" title="TypeMirror"></a>TypeMirror</h4><p><code>TypeMirror</code> 用来描述数据类型，包括基本类型、类和接口、数组、泛型、Null、通配符和 Void.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Represents a type in the Java programming language.</span></span><br><span class="line"><span class="comment"> * Types include primitive types, declared types (class and interface types),</span></span><br><span class="line"><span class="comment"> * array types, type variables, and the null type.</span></span><br><span class="line"><span class="comment"> * Also represented are wildcard type arguments,</span></span><br><span class="line"><span class="comment"> * the signature and return types of executables,</span></span><br><span class="line"><span class="comment"> * and pseudo-types corresponding to packages and to the keyword &#123;<span class="doctag">@code</span> void&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">TypeMirror</span> <span class="keyword">extends</span> <span class="title class_">javax</span>.lang.model.AnnotatedConstruct &#123;</span><br><span class="line">    <span class="comment">// 用以获取当前这个TypeMirror具体类型是什么</span></span><br><span class="line">    TypeKind <span class="title function_">getKind</span><span class="params">()</span>;</span><br><span class="line">    <span class="comment">// 使用访问者模式进行类型转换后操作，其中R是Result结果类型，P是Parameter参数类型</span></span><br><span class="line">    &lt;R, P&gt; R <span class="title function_">accept</span><span class="params">(TypeVisitor&lt;R, P&gt; v, P p)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>TypeMirror 有如下实现类：</p>
+<ul>
+<li><strong>ArrayType</strong>：代表数组类型，可通过 API 获取元数据类型；</li>
+<li><strong>DeclaredType</strong>：声明类型，即类或接口。可以通过 asElement()和后面的 Element 进行转换；</li>
+<li><strong>ExecutableType</strong>：方法、构造器、初始化块等可执行体的类型，类似反射中 Method，包含几个关键 API：<ol>
+<li><code>List&lt;? extends TypeVariable&gt; getTypeVariables()</code> 获取声明中的泛型，如 <code>public &lt;T&gt; void foo(T t)</code> 则会得到 T 的 TypeVariable；</li>
+<li><code>List&lt;? extends TypeMirror&gt; getParameterTypes()</code>获取入参类型；</li>
+<li><code>TypeMirror getReturnType()</code> 获取返回值类型；</li>
+<li><code>List&lt;? extends TypeMirror&gt; getThrownTypes()</code> 获取声明的异常类型</li>
+</ol>
+</li>
+<li><strong>TypeVariable</strong>：泛型类型，可以通过 getLowerBound()和 getUpperBound() 获取类型限定；</li>
+<li><strong>WildcardType</strong>：通配类型，API 同上；</li>
+</ul>
+<p>与 TypeMirror 的区别是什么？</p>
+<ul>
+<li>Element 是程序真正会运行到的节点，它可以具备注释</li>
+<li>Set&lt;String&gt;是 TypeMirror，而 Set 是 Element。TypeMirror 是对 Element 提供了从类型到声明的一个映射，在更高的层次上对 Element 进行解释说明</li>
+<li>粗暴的解法：Element 是实例，可以透过它获得真正有效的数据。而 TypeMirror 是只是类型描述，无法代表实例的值。比如我们在某个 Annotation 中给了 value 是 1，透过 Element 可以得到 1，而透过 TypeMirror 只能得到是 Integer 类型</li>
+</ul>
+<h4 id="TypeVisitor"><a href="#TypeVisitor" class="headerlink" title="TypeVisitor"></a>TypeVisitor</h4><h2 id="AbstractProcessor-类介绍"><a href="#AbstractProcessor-类介绍" class="headerlink" title="AbstractProcessor 类介绍"></a>AbstractProcessor 类介绍</h2><p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/java/apt.jpg" alt="apt"></p>
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/java/Java%20Compilation%20Process%20with%20Annotation%20Processing.jpg" alt="Java Compilation Process with Annotation Processing"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> javax.annotation.processing;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Processor</span> &#123;</span><br><span class="line">    <span class="comment">// 命令行选项</span></span><br><span class="line">    Set&lt;String&gt; <span class="title function_">getSupportedOptions</span><span class="params">()</span>;</span><br><span class="line">    <span class="comment">// 支持的注解</span></span><br><span class="line">    Set&lt;String&gt; <span class="title function_">getSupportedAnnotationTypes</span><span class="params">()</span>;</span><br><span class="line">    <span class="comment">// 支持的 Java 版本，一般返回 SourceVersion.latestSupported()</span></span><br><span class="line">    SourceVersion <span class="title function_">getSupportedSourceVersion</span><span class="params">()</span>;</span><br><span class="line">    <span class="comment">// 注解处理器初始化</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(ProcessingEnvironment processingEnv)</span>;</span><br><span class="line">    <span class="comment">// 处理过程</span></span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv)</span>;</span><br><span class="line"></span><br><span class="line">    Iterable&lt;? <span class="keyword">extends</span> <span class="title class_">Completion</span>&gt; getCompletions(Element element,</span><br><span class="line">            AnnotationMirror annotation, ExecutableElement member, String userText);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>ProcessingEnvironment: 代表了注解处理器框架提供的一个上下文环境，要创建新的代码或者向编译器输出信息或者获取其他工具类等都需要用到这个实例变量。<ol>
+<li>getElementUtils()：处理 Element 的工具类，用于获取程序的元素，例如包、类、方法。</li>
+<li>getTypeUtils()：处理 TypeMirror 的工具类，用于取类信息</li>
+<li>getFiler()：文件工具</li>
+<li>getMessager()：编译过程中的日志组件</li>
+</ol>
+</li>
+<li>RoundEnvironment: 提供了访问到当前这个 Round 中语法树节点的功能。<ol>
+<li>Set&lt;? extends Element&gt; getRootElements()上一轮所产生的根节点集合（类、接口等）</li>
+<li>Set&lt;? extends Element&gt; getElementsAnnotatedWith(TypeElement a) 通过指定的Annotation查找相关节点</li>
+<li>boolean processingOver() 如果返回true说明本轮结束后将不会再开启新一轮的处理，否则是false</li>
+<li>boolean errorRaised() 上一轮是否产生了错误</li>
+</ol>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> javax.annotation.processing;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractProcessor</span> <span class="keyword">implements</span> <span class="title class_">Processor</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> ProcessingEnvironment processingEnv;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">initialized</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="title function_">AbstractProcessor</span><span class="params">()</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置注解处理器支持的参数</span></span><br><span class="line">    <span class="keyword">public</span> Set&lt;String&gt; <span class="title function_">getSupportedOptions</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SupportedOptions</span> <span class="variable">so</span> <span class="operator">=</span> <span class="built_in">this</span>.getClass().getAnnotation(SupportedOptions.class);</span><br><span class="line">        <span class="keyword">if</span>  (so == <span class="literal">null</span>)</span><br><span class="line">            <span class="keyword">return</span> Collections.emptySet();</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> arrayToSet(so.value());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 可以通过注解的方式，设置注解处理器支持的注解</span></span><br><span class="line">    <span class="keyword">public</span> Set&lt;String&gt; <span class="title function_">getSupportedAnnotationTypes</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SupportedAnnotationTypes</span> <span class="variable">sat</span> <span class="operator">=</span> <span class="built_in">this</span>.getClass().getAnnotation(SupportedAnnotationTypes.class);</span><br><span class="line">        <span class="keyword">if</span>  (sat == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (isInitialized())</span><br><span class="line">                processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,</span><br><span class="line">                <span class="string">&quot;No SupportedAnnotationTypes annotation &quot;</span> + <span class="string">&quot;found on &quot;</span> + <span class="built_in">this</span>.getClass().getName() +</span><br><span class="line">                <span class="string">&quot;, returning an empty set.&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> Collections.emptySet();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> arrayToSet(sat.value());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置注解处理器支持的 Java 版本。默认为JDK6</span></span><br><span class="line">    <span class="keyword">public</span> SourceVersion <span class="title function_">getSupportedSourceVersion</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SupportedSourceVersion</span> <span class="variable">ssv</span> <span class="operator">=</span> <span class="built_in">this</span>.getClass().getAnnotation(SupportedSourceVersion.class);</span><br><span class="line">        <span class="type">SourceVersion</span> <span class="variable">sv</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (ssv == <span class="literal">null</span>) &#123;</span><br><span class="line">            sv = SourceVersion.RELEASE_6;</span><br><span class="line">            <span class="keyword">if</span> (isInitialized())</span><br><span class="line">            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,</span><br><span class="line">                    <span class="string">&quot;No SupportedSourceVersion annotation &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;found on &quot;</span> + <span class="built_in">this</span>.getClass().getName() +</span><br><span class="line">                    <span class="string">&quot;, returning &quot;</span> + sv + <span class="string">&quot;.&quot;</span>);</span><br><span class="line">        &#125; <span class="type">else</span></span><br><span class="line">            <span class="variable">sv</span> <span class="operator">=</span> ssv.value();</span><br><span class="line">        <span class="keyword">return</span> sv;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理器初始化方法，只能初始化一次</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">(ProcessingEnvironment processingEnv)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (initialized)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;Cannot call init more than once.&quot;</span>);</span><br><span class="line">        Objects.requireNonNull(processingEnv, <span class="string">&quot;Tool provided null ProcessingEnvironment&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">this</span>.processingEnv = processingEnv;</span><br><span class="line">        initialized = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理过程</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="type">boolean</span> <span class="title function_">process</span><span class="params">(Set&lt;? extends TypeElement&gt; annotations,</span></span><br><span class="line"><span class="params">                                RoundEnvironment roundEnv)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Iterable&lt;? <span class="keyword">extends</span> <span class="title class_">Completion</span>&gt; getCompletions(Element element,</span><br><span class="line">                                                         AnnotationMirror annotation,</span><br><span class="line">                                                         ExecutableElement member,</span><br><span class="line">                                                         String userText) &#123;</span><br><span class="line">        <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="type">boolean</span> <span class="title function_">isInitialized</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> initialized;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Set&lt;String&gt; <span class="title function_">arrayToSet</span><span class="params">(String[] array)</span> &#123;</span><br><span class="line">        <span class="keyword">assert</span> array != <span class="literal">null</span>;</span><br><span class="line">        Set&lt;String&gt; set = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;String&gt;(array.length);</span><br><span class="line">        <span class="keyword">for</span> (String s : array)</span><br><span class="line">            set.add(s);</span><br><span class="line">        <span class="keyword">return</span> Collections.unmodifiableSet(set);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>process()</code> 是抽象方法，用来实现注解处理器的具体逻辑。比如获取被注解的元素，生成 Java 源代码等信息。<br>返回值表示注解是否由当前 Processor 处理。如果返回 true，则这些注解由此注解来处理，后续其它的 Processor 无需再处理它们；如果返回 false，则这些注解未在此 Processor 中处理，那么后续 Processor 可以继续处理它们。<br>因为存在另一种只要消费掉所有注解后也可停止收集阶段的设计，所以往往这里就是返回 false，Google 的 auto-services 也是如此，并不会影响最终的使用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">process</span><span class="params">(Set&lt;? extends TypeElement&gt; set, RoundEnvironment env)</span> &#123;</span><br><span class="line">    Set&lt;? <span class="keyword">extends</span> <span class="title class_">Element</span>&gt; elements = env.getElementsAnnotatedWith(PrintMe.class);</span><br><span class="line">    <span class="comment">//由于编译器的输出无法打印到控制台，使用 javapoet 库把需要输出的信息写入到一个新的类中</span></span><br><span class="line">    <span class="keyword">for</span> (Element element : elements) &#123;</span><br><span class="line">        <span class="type">PrintMe</span> <span class="variable">annotation</span> <span class="operator">=</span> element.getAnnotation(PrintMe.class);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="注册注解处理器"><a href="#注册注解处理器" class="headerlink" title="注册注解处理器"></a>注册注解处理器</h2><ol>
+<li><p>在 META-INF&#x2F;services 文件夹下创建 <code>javax.annotation.processing.Processor</code> 文件，在此文件中输入实现注解处理器的实体类的全名。</p>
+</li>
+<li><p>使用 google 的 AutoService 库：</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    implementation <span class="string">&#x27;com.google.auto.service:auto-service:1.0&#x27;</span></span><br><span class="line">    annotationProcessor <span class="string">&#x27;com.google.auto.service:auto-service:1.0&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="相关库"><a href="#相关库" class="headerlink" title="相关库"></a>相关库</h2><h3 id="JavaPoet"><a href="#JavaPoet" class="headerlink" title="JavaPoet"></a><a target="_blank" rel="noopener" href="https://github.com/square/javapoet">JavaPoet</a></h3><p>JavaPoet 是 square 开源的 Java 代码生成框架，可以很方便地通过其提供的 API 来生成指定格式（修饰符、返回值、参数、函数体等）的代码。</p>
+<blockquote>
+<p>依赖: com.squareup:javapoet:1.11.1</p>
+</blockquote>
+<h3 id="auto-service"><a href="#auto-service" class="headerlink" title="auto-service"></a><a target="_blank" rel="noopener" href="https://github.com/google/auto">auto-service</a></h3><p>auto-service 是由 Google 开源的注解处理器。</p>
+<blockquote>
+<p>依赖： com.google.auto.service:auto-service:1.0</p>
+</blockquote>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/javax/annotation/processing/Processor.html">[1] Processor - oracle docs</a><br><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html#jls-9.6">[2] Annotation Types - - oracle docs</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/GglXZsmnN-Np_669jxpZGA">[3] 深入理解 Java 注解处理器 APT</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/AyR4irlka77aJ8KdEdYbrw">[4] 使用 Google 开源库 AutoService 进行组件化开发</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/07/02/Android-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/" rel="prev" title="Android 类加载器">
+                  <i class="fa fa-chevron-left"></i> Android 类加载器
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/08/01/Android-RecyclerView/" rel="next" title="Android RecyclerView">
+                  Android RecyclerView <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

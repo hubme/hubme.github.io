@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="对于 Android 而言，最终的 apk 文件包含的是 dex 类型的文件。dex 文件是将 class 文件重新打包，打包的规则又不是简单地压缩，而是完全对 class 文件内部的各种函数表，变量表进行优化，产生一个新的文件，即 dex 文件。而加载这种特殊的 class 文件就需要特殊的类加载器 DexClassLoader。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 类加载器">
+<meta property="og:url" content="http://example.com/2018/07/02/Android-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="对于 Android 而言，最终的 apk 文件包含的是 dex 类型的文件。dex 文件是将 class 文件重新打包，打包的规则又不是简单地压缩，而是完全对 class 文件内部的各种函数表，变量表进行优化，产生一个新的文件，即 dex 文件。而加载这种特殊的 class 文件就需要特殊的类加载器 DexClassLoader。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-classloader.webp">
+<meta property="article:published_time" content="2018-07-02T10:07:59.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.118Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="ClassLoader">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-classloader.webp">
+
+
+<link rel="canonical" href="http://example.com/2018/07/02/Android-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2018/07/02/Android-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/","path":"2018/07/02/Android-类加载器/","title":"Android 类加载器"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android 类加载器 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#BaseDexClassLoader"><span class="nav-number">1.</span> <span class="nav-text">BaseDexClassLoader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DexPathList"><span class="nav-number">1.1.</span> <span class="nav-text">DexPathList</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DexFile"><span class="nav-number">1.2.</span> <span class="nav-text">DexFile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DexClassLoader"><span class="nav-number">2.</span> <span class="nav-text">DexClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PathClassLoader"><span class="nav-number">3.</span> <span class="nav-text">PathClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/07/02/Android-%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android 类加载器 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android 类加载器
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-07-02 18:07:59" itemprop="dateCreated datePublished" datetime="2018-07-02T18:07:59+08:00">2018-07-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>对于 Android 而言，最终的 apk 文件包含的是 dex 类型的文件。dex 文件是将 class 文件重新打包，打包的规则又不是简单地压缩，而是完全对 class 文件内部的各种函数表，变量表进行优化，产生一个新的文件，即 dex 文件。而加载这种特殊的 class 文件就需要特殊的类加载器 DexClassLoader。</p>
+<span id="more"></span>
+<p>源码位于 <code>AOSP/libcore/dalvik/src/main/java/dalvik/system</code> 目录下。</p>
+<h2 id="BaseDexClassLoader"><a href="#BaseDexClassLoader" class="headerlink" title="BaseDexClassLoader"></a>BaseDexClassLoader</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Base class for common functionality between various dex-based</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> ClassLoader&#125; implementations.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BaseDexClassLoader</span> <span class="keyword">extends</span> <span class="title class_">ClassLoader</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DexPathList pathList;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">BaseDexClassLoader</span><span class="params">(String dexPath, File optimizedDirectory,</span></span><br><span class="line"><span class="params">            String librarySearchPath, ClassLoader parent)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(parent);</span><br><span class="line">        <span class="built_in">this</span>.pathList = <span class="keyword">new</span> <span class="title class_">DexPathList</span>(<span class="built_in">this</span>, dexPath, librarySearchPath, <span class="literal">null</span>);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt; findClass(String name) <span class="keyword">throws</span> ClassNotFoundException &#123;</span><br><span class="line">        <span class="comment">// First, check whether the class is present in our shared libraries.</span></span><br><span class="line">        <span class="keyword">if</span> (sharedLibraryLoaders != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (ClassLoader loader : sharedLibraryLoaders) &#123;</span><br><span class="line">                <span class="keyword">return</span> loader.loadClass(name);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Check whether the class in question is present in the dexPath that</span></span><br><span class="line">        <span class="comment">// this classloader operates on.</span></span><br><span class="line">        List&lt;Throwable&gt; suppressedExceptions = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;Throwable&gt;();</span><br><span class="line">        <span class="type">Class</span> <span class="variable">c</span> <span class="operator">=</span> pathList.findClass(name, suppressedExceptions);</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addDexPath</span><span class="params">(String dexPath)</span> &#123;</span><br><span class="line">        addDexPath(dexPath, <span class="literal">false</span> <span class="comment">/*isTrusted*/</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addDexPath</span><span class="params">(String dexPath, <span class="type">boolean</span> isTrusted)</span> &#123;</span><br><span class="line">        pathList.addDexPath(dexPath, <span class="literal">null</span> <span class="comment">/*optimizedDirectory*/</span>, isTrusted);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> URL <span class="title function_">findResource</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (sharedLibraryLoaders != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (ClassLoader loader : sharedLibraryLoaders) &#123;</span><br><span class="line">                <span class="type">URL</span> <span class="variable">url</span> <span class="operator">=</span> loader.getResource(name);</span><br><span class="line">                <span class="keyword">if</span> (url != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">return</span> url;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> pathList.findResource(name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>在构造函数中初始化 <code>DexPathList</code>；</li>
+<li>通过 DexPathList 查找 Class 和 资源；</li>
+</ol>
+<h3 id="DexPathList"><a href="#DexPathList" class="headerlink" title="DexPathList"></a>DexPathList</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A pair of lists of entries, associated with a &#123;<span class="doctag">@code</span> ClassLoader&#125;.</span></span><br><span class="line"><span class="comment"> * One of the lists is a dex/resource path &amp;mdash; typically referred</span></span><br><span class="line"><span class="comment"> * to as a &quot;class path&quot; &amp;mdash; list, and the other names directories</span></span><br><span class="line"><span class="comment"> * containing native code libraries. Class path entries may be any of:</span></span><br><span class="line"><span class="comment"> * a &#123;<span class="doctag">@code</span> .jar&#125; or &#123;<span class="doctag">@code</span> .zip&#125; file containing an optional</span></span><br><span class="line"><span class="comment"> * top-level &#123;<span class="doctag">@code</span> classes.dex&#125; file as well as arbitrary resources,</span></span><br><span class="line"><span class="comment"> * or a plain &#123;<span class="doctag">@code</span> .dex&#125; file (with no possibility of associated</span></span><br><span class="line"><span class="comment"> * resources).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;This class also contains methods to use these lists to look up</span></span><br><span class="line"><span class="comment"> * classes and resources.&lt;/p&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">/*package*/</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">DexPathList</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">DEX_SUFFIX</span> <span class="operator">=</span> <span class="string">&quot;.dex&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">zipSeparator</span> <span class="operator">=</span> <span class="string">&quot;!/&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> Element[] dexElements;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">DexPathList</span><span class="params">(ClassLoader definingContext, String dexPath,</span></span><br><span class="line"><span class="params">            String librarySearchPath, File optimizedDirectory)</span> &#123;</span><br><span class="line">            ...</span><br><span class="line">        <span class="comment">// save dexPath for BaseDexClassLoader</span></span><br><span class="line">        <span class="built_in">this</span>.dexElements = makeDexElements(splitDexPath(dexPath), optimizedDirectory, suppressedExceptions, definingContext);</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Makes an array of dex/resource path elements, one per element of</span></span><br><span class="line"><span class="comment">     * the given array.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Element[] makeDexElements(List&lt;File&gt; files, File optimizedDirectory,</span><br><span class="line">            List&lt;IOException&gt; suppressedExceptions, ClassLoader loader) &#123;</span><br><span class="line">      Element[] elements = <span class="keyword">new</span> <span class="title class_">Element</span>[files.size()];</span><br><span class="line">      <span class="type">int</span> <span class="variable">elementsPos</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">      <span class="comment">/*</span></span><br><span class="line"><span class="comment">       * Open all files and load the (direct or contained) dex files up front.</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line">      <span class="keyword">for</span> (File file : files) &#123;</span><br><span class="line">          <span class="keyword">if</span> (file.isDirectory()) &#123;</span><br><span class="line">              <span class="comment">// We support directories for looking up resources. Looking up resources in</span></span><br><span class="line">              <span class="comment">// directories is useful for running libcore tests.</span></span><br><span class="line">              elements[elementsPos++] = <span class="keyword">new</span> <span class="title class_">Element</span>(file);</span><br><span class="line">          &#125; <span class="keyword">else</span> <span class="keyword">if</span> (file.isFile()) &#123;</span><br><span class="line">              <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> file.getName();</span><br><span class="line"></span><br><span class="line">              <span class="keyword">if</span> (name.endsWith(DEX_SUFFIX)) &#123;</span><br><span class="line">                  <span class="comment">// Raw dex file (not inside a zip/jar).</span></span><br><span class="line">                  <span class="type">DexFile</span> <span class="variable">dex</span> <span class="operator">=</span> loadDexFile(file, optimizedDirectory, loader, elements);</span><br><span class="line">                  <span class="keyword">if</span> (dex != <span class="literal">null</span>) &#123;</span><br><span class="line">                      elements[elementsPos++] = <span class="keyword">new</span> <span class="title class_">Element</span>(dex, <span class="literal">null</span>);</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                  <span class="type">DexFile</span> <span class="variable">dex</span> <span class="operator">=</span> loadDexFile(file, optimizedDirectory, loader, elements);</span><br><span class="line">                  <span class="keyword">if</span> (dex == <span class="literal">null</span>) &#123;</span><br><span class="line">                      elements[elementsPos++] = <span class="keyword">new</span> <span class="title class_">Element</span>(file);</span><br><span class="line">                  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                      elements[elementsPos++] = <span class="keyword">new</span> <span class="title class_">Element</span>(dex, file);</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125;</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (elementsPos != elements.length) &#123;</span><br><span class="line">          elements = Arrays.copyOf(elements, elementsPos);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> elements;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Constructs a &#123;<span class="doctag">@code</span> DexFile&#125; instance, as appropriate depending on whether</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@code</span> optimizedDirectory&#125; is &#123;<span class="doctag">@code</span> null&#125;. An application image file may be associated with</span></span><br><span class="line"><span class="comment">     * the &#123;<span class="doctag">@code</span> loader&#125; if it is not null.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> DexFile <span class="title function_">loadDexFile</span><span class="params">(File file, File optimizedDirectory, ClassLoader loader, Element[] elements)</span></span><br><span class="line">            <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">if</span> (optimizedDirectory == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DexFile</span>(file, loader, elements);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 间接调用 new DexFile()</span></span><br><span class="line">            <span class="keyword">return</span> DexFile.loadDex(file.getPath(), optimizedPath, <span class="number">0</span>, loader, elements);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Element</span> &#123;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Element encapsulates a dex file. This may be a plain dex file (in which case dexZipPath</span></span><br><span class="line"><span class="comment">         * should be null), or a jar (in which case dexZipPath should denote the zip file).</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="meta">@UnsupportedAppUsage</span></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">Element</span><span class="params">(DexFile dexFile, File dexZipPath)</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.dexFile = dexFile;</span><br><span class="line">            <span class="built_in">this</span>.path = dexZipPath;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> Class&lt;?&gt; findClass(String name, ClassLoader definingContext,</span><br><span class="line">                List&lt;Throwable&gt; suppressed) &#123;</span><br><span class="line">            <span class="keyword">return</span> dexFile != <span class="literal">null</span> ? dexFile.loadClassBinaryName(name, definingContext, suppressed) : <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> URL <span class="title function_">findResource</span><span class="params">(String name)</span> &#123;</span><br><span class="line">            <span class="comment">// We support directories so we can run tests and/or legacy code</span></span><br><span class="line">            <span class="comment">// that uses Class.getResource.</span></span><br><span class="line">            <span class="keyword">if</span> (path != <span class="literal">null</span> &amp;&amp; path.isDirectory()) &#123;</span><br><span class="line">                <span class="type">File</span> <span class="variable">resourceFile</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(path, name);</span><br><span class="line">                <span class="keyword">if</span> (resourceFile.exists()) &#123;</span><br><span class="line">                    <span class="keyword">return</span> resourceFile.toURI().toURL();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>DexPathList 通过 <code>makeDexElements()</code> 方法返回 <code>Element[]</code> 数组，Element 中保存有 <code>DexFile</code> 的对象。</p>
+<h3 id="DexFile"><a href="#DexFile" class="headerlink" title="DexFile"></a>DexFile</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Loads DEX files. This class is meant for internal use and should not be used by applications.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Deprecated</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">DexFile</span> &#123;</span><br><span class="line">    DexFile(String fileName, ClassLoader loader, DexPathList.Element[] elements) <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        mCookie = openDexFile(fileName, <span class="literal">null</span>, <span class="number">0</span>, loader, elements);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Object <span class="title function_">openDexFile</span><span class="params">(String sourceName, String outputName, <span class="type">int</span> flags, ...)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">return</span> openDexFileNative(...);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Open a DEX file.  The value returned is a magic VM cookie.  On</span></span><br><span class="line"><span class="comment">     * failure, an IOException is thrown.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> Object <span class="title function_">openDexFileNative</span><span class="params">(String sourceName, String outputName, <span class="type">int</span> flags, ...)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> DexFile <span class="title function_">loadDex</span><span class="params">(String sourcePathName, String outputPathName,</span></span><br><span class="line"><span class="params">        <span class="type">int</span> flags, ClassLoader loader, DexPathList.Element[] elements)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DexFile</span>(sourcePathName, outputPathName, flags, loader, elements);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Class <span class="title function_">loadClass</span><span class="params">(String name, ClassLoader loader)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">slashName</span> <span class="operator">=</span> name.replace(<span class="string">&#x27;.&#x27;</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span> loadClassBinaryName(slashName, loader, <span class="literal">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Class <span class="title function_">loadClassBinaryName</span><span class="params">(String name, ClassLoader loader, List&lt;Throwable&gt; suppressed)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> defineClass(name, loader, mCookie, <span class="built_in">this</span>, suppressed);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Class <span class="title function_">defineClass</span><span class="params">(String name, ClassLoader loader, Object cookie,</span></span><br><span class="line"><span class="params">                                     DexFile dexFile, List&lt;Throwable&gt; suppressed)</span> &#123;</span><br><span class="line">        <span class="type">Class</span> <span class="variable">result</span> <span class="operator">=</span> defineClassNative(name, loader, cookie, dexFile);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> Class <span class="title function_">defineClassNative</span><span class="params">(String name, ClassLoader loader, Object cookie, DexFile dexFile)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>在构造方法中处理 Dex 文件；</li>
+<li>通过 <code>native 方法</code>打开 Dex 文件和定义 Class。</li>
+</ol>
+<p>JNI 实现文件为 <code>AOSP/art/runtime/native/</code> 文件夹下。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// dalvik_system_DexFile.cc</span></span><br><span class="line"><span class="function"><span class="type">static</span> jobject <span class="title">DexFile_openDexFileNative</span><span class="params">(JNIEnv* env, jclass, ...)</span> </span>&#123;</span><br><span class="line">  Runtime* <span class="type">const</span> runtime = Runtime::<span class="built_in">Current</span>();</span><br><span class="line">  std::vector&lt;std::unique_ptr&lt;<span class="type">const</span> DexFile&gt;&gt; dex_files;</span><br><span class="line">  <span class="type">const</span> OatFile* oat_file = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">  dex_files = runtime-&gt;<span class="built_in">GetOatFileManager</span>().<span class="built_in">OpenDexFilesFromOat</span>(sourceName.<span class="built_in">c_str</span>(), class_loader, dex_elements, ...);</span><br><span class="line">  <span class="keyword">if</span> (!dex_files.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">    jlongArray array = <span class="built_in">ConvertDexFilesToJavaArray</span>(env, oat_file, dex_files);</span><br><span class="line">    <span class="keyword">return</span> array;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关键是 OpenDexFilesFromOat() 方法，转到 oat_file_manager.cc 文件。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// oat_file_manager.cc</span></span><br><span class="line">std::vector&lt;std::unique_ptr&lt;<span class="type">const</span> DexFile&gt;&gt; OatFileManager::<span class="built_in">OpenDexFilesFromOat</span>( <span class="type">const</span> <span class="type">char</span>* dex_location,</span><br><span class="line">    jobject class_loader, jobjectArray dex_elements, ...) &#123;</span><br><span class="line"></span><br><span class="line">    Runtime* <span class="type">const</span> runtime = Runtime::<span class="built_in">Current</span>();</span><br><span class="line">    <span class="function">OatFileAssistant <span class="title">oat_file_assistant</span><span class="params">(dex_location, kRuntimeISA, !runtime-&gt;IsAotCompiler())</span></span>;</span><br><span class="line">    <span class="comment">// Get the oat file on disk.</span></span><br><span class="line">    <span class="function">std::unique_ptr&lt;<span class="type">const</span> OatFile&gt; <span class="title">oat_file</span><span class="params">(oat_file_assistant.GetBestOatFile().release())</span></span>;</span><br><span class="line">    <span class="keyword">if</span> (oat_file != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// Take the file only if it has no collisions, or we must take it because of preopting.</span></span><br><span class="line">        <span class="type">bool</span> accept_oat_file =</span><br><span class="line">            !<span class="built_in">HasCollisions</span>(oat_file.<span class="built_in">get</span>(), class_loader, dex_elements, <span class="comment">/*out*/</span> &amp;error_msg);</span><br><span class="line">        <span class="keyword">if</span> (accept_oat_file) &#123;</span><br><span class="line">            source_oat_file = <span class="built_in">RegisterOatFile</span>(std::<span class="built_in">move</span>(oat_file));</span><br><span class="line">            *out_oat_file = source_oat_file;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    std::vector&lt;std::unique_ptr&lt;<span class="type">const</span> DexFile&gt;&gt; dex_files;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Load the dex files from the oat file.</span></span><br><span class="line">    <span class="keyword">if</span> (source_oat_file != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="type">bool</span> added_image_space = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (source_oat_file-&gt;<span class="built_in">IsExecutable</span>()) &#123;</span><br><span class="line">            std::unique_ptr&lt;gc::space::ImageSpace&gt; image_space =</span><br><span class="line">                kEnableAppImage ? oat_file_assistant.<span class="built_in">OpenImageSpace</span>(source_oat_file) : <span class="literal">nullptr</span>;</span><br><span class="line">            runtime-&gt;<span class="built_in">GetHeap</span>()-&gt;<span class="built_in">AddSpace</span>(image_space.<span class="built_in">get</span>());</span><br><span class="line">            added_image_space = runtime-&gt;<span class="built_in">GetClassLinker</span>()-&gt;<span class="built_in">AddImageSpace</span>(image_space.<span class="built_in">get</span>(), ...);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!added_image_space) &#123;</span><br><span class="line">            dex_files = oat_file_assistant.<span class="built_in">LoadDexFiles</span>(*source_oat_file, dex_location);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> dex_files;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要是将 dex 文件转 oat。如果转 oat 失败，那就打开 dex 的方式来加载。</p>
+<h2 id="DexClassLoader"><a href="#DexClassLoader" class="headerlink" title="DexClassLoader"></a>DexClassLoader</h2><p>能够加载未安装的 jar、apk 或 dex。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A class loader that loads classes from &#123;<span class="doctag">@code</span> .jar&#125; and &#123;<span class="doctag">@code</span> .apk&#125; files containing a &#123;<span class="doctag">@code</span> classes.dex&#125; entry. This can be used to execute code not installed as part of an application.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DexClassLoader</span> <span class="keyword">extends</span> <span class="title class_">BaseDexClassLoader</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates a &#123;<span class="doctag">@code</span> DexClassLoader&#125; that finds interpreted and native code.  Interpreted classes are found in a set of DEX files contained in Jar or APK files.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">DexClassLoader</span><span class="params">(String dexPath, String optimizedDirectory,</span></span><br><span class="line"><span class="params">            String librarySearchPath, ClassLoader parent)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(dexPath, <span class="literal">null</span>, librarySearchPath, parent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>DexClassLoader 继承 BaseDexClassLoader，只有一个构造函数，optimizedDirectory 传 null。</p>
+<h2 id="PathClassLoader"><a href="#PathClassLoader" class="headerlink" title="PathClassLoader"></a>PathClassLoader</h2><p>只能从本地文件系统加载，不能从网络加载类。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Provides a simple &#123;<span class="doctag">@link</span> ClassLoader&#125; implementation that operates on a list of files and directories in the local file system, but does not attempt to load classes from the network. Android uses this class for its system class loader and for its application class loader(s).</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PathClassLoader</span> <span class="keyword">extends</span> <span class="title class_">BaseDexClassLoader</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PathClassLoader</span><span class="params">(String dexPath, ClassLoader parent)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(dexPath, <span class="literal">null</span>, <span class="literal">null</span>, parent);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PathClassLoader</span><span class="params">(String dexPath, String librarySearchPath, ClassLoader parent)</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>(dexPath, <span class="literal">null</span>, librarySearchPath, parent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://my-android.oss-cn-shanghai.aliyuncs.com/img/android/android-classloader.webp" alt="Android ClassLoader"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://developer.android.com/reference/dalvik/system/DexClassLoader.html">[1] DexClassLoader - developer</a><br><a target="_blank" rel="noopener" href="https://developer.android.com/reference/dalvik/system/PathClassLoader.html">[2] PathClassLoader - developer</a><br><a target="_blank" rel="noopener" href="http://gityuan.com/2017/03/19/android-classloader/">[3] Android 类加载器 ClassLoader - Gityuan 博客</a><br><a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/android-11.0.0_r1:libcore/dalvik/src/main/java/dalvik/system/">[4] Android 11 在线源码</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ClassLoader/" rel="tag"># ClassLoader</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/07/01/Java-%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="prev" title="Java 线程池">
+                  <i class="fa fa-chevron-left"></i> Java 线程池
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/07/10/Java-%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" rel="next" title="Java 注解处理器">
+                  Java 注解处理器 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

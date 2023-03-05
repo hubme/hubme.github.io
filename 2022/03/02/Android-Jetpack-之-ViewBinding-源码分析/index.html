@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在 Kotlin 1.4.20-M2 中，JetBrains 废弃了 Kotlin Android Extensions 编译插件。 不要与 Data Binding 混淆。View Binding 是一种功能，它允许您更容易地编写与视图交互的代码。一旦在一个模块中启用了 View Binding，它就会为该模块中存在的每个 XML 布局文件生成一个绑定类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Jetpack 之 ViewBinding 源码分析">
+<meta property="og:url" content="http://example.com/2022/03/02/Android-Jetpack-%E4%B9%8B-ViewBinding-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Vance 的博客">
+<meta property="og:description" content="在 Kotlin 1.4.20-M2 中，JetBrains 废弃了 Kotlin Android Extensions 编译插件。 不要与 Data Binding 混淆。View Binding 是一种功能，它允许您更容易地编写与视图交互的代码。一旦在一个模块中启用了 View Binding，它就会为该模块中存在的每个 XML 布局文件生成一个绑定类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-02T07:50:14.000Z">
+<meta property="article:modified_time" content="2023-03-05T02:30:41.115Z">
+<meta property="article:author" content="Vance">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="Jetpack">
+<meta property="article:tag" content="ViewBinding">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2022/03/02/Android-Jetpack-%E4%B9%8B-ViewBinding-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2022/03/02/Android-Jetpack-%E4%B9%8B-ViewBinding-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/","path":"2022/03/02/Android-Jetpack-之-ViewBinding-源码分析/","title":"Android Jetpack 之 ViewBinding 源码分析"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Android Jetpack 之 ViewBinding 源码分析 | Vance 的博客</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Vance 的博客</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">1.</span> <span class="nav-text">环境配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Binding-%E7%B1%BB%E7%94%9F%E6%88%90%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">Binding 类生成原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90-xml-%E6%96%87%E4%BB%B6"><span class="nav-number">3.1.</span> <span class="nav-text">解析 xml 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-xml-%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.</span> <span class="nav-text">生成 xml 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-Binding-%E7%B1%BB"><span class="nav-number">3.3.</span> <span class="nav-text">生成 Binding 类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Vance</p>
+  <div class="site-description" itemprop="description">问道有先后，如是而已。</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/02/Android-Jetpack-%E4%B9%8B-ViewBinding-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Vance">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vance 的博客">
+      <meta itemprop="description" content="问道有先后，如是而已。">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Android Jetpack 之 ViewBinding 源码分析 | Vance 的博客">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android Jetpack 之 ViewBinding 源码分析
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-02 15:50:14" itemprop="dateCreated datePublished" datetime="2022-03-02T15:50:14+08:00">2022-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-05 10:30:41" itemprop="dateModified" datetime="2023-03-05T10:30:41+08:00">2023-03-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在 Kotlin 1.4.20-M2 中，JetBrains 废弃了 Kotlin Android Extensions 编译插件。</p>
+<p>不要与 Data Binding 混淆。View Binding 是一种功能，它允许您更容易地编写与视图交互的代码。<br>一旦在一个模块中启用了 View Binding，它就会为该模块中存在的每个 XML 布局文件生成一个绑定类。</p>
+<span id="more"></span>
+<ul>
+<li>绑定类的实例包含对相应布局中具有 ID 的所有 VIew 的直接引用。</li>
+<li>View Binding 对于在多个配置中定义的布局来说是 Null-safe 的。</li>
+<li>View Binding 将检测视图是否只存在于某些配置中，并创建一个@Nullable 属性。</li>
+<li>View Binding 适用于 Java 和 Kotlin。</li>
+</ul>
+<blockquote>
+<p>禁用某个布局文件使用 ViewBinding，则需要在布局文件的根节点中添加 <code>tools：viewBindingIgnore = &quot;true&quot;</code>。</p>
+</blockquote>
+<!--more-->
+
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/studio/releases#3-6-0">Android Studio 3.6</a> 及以上；</li>
+<li>Android Gradle 插件 3.6.0 及以上；</li>
+<li>Gradle 版本 5.6.4 及以上；</li>
+<li>在模块的 build.gradle 文件中添加 <code>android &#123; buildFeatures &#123; viewBinding = true &#125; &#125;</code>，<code>android &#123; viewBinding.enabled = true &#125;</code> 方式已废弃。<br>DSL element ‘android.viewBinding.enabled’ is obsolete and has been replaced with ‘android.buildFeatures.viewBinding’.</li>
+</ol>
+<p>GradlePlugin 和 Gradle 要对应，否则会不兼容，出现同步失败的问题。查看 <a target="_blank" rel="noopener" href="https://developer.android.com/studio/releases/gradle-plugin">Android Gradle 插件版本说明。</a></p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> : <span class="type">AppCompatActivity</span></span>() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> binding: ActivityMainBinding</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        binding = ActivityMainBinding.inflate(layoutInflater)</span><br><span class="line">        setContentView(binding.root)</span><br><span class="line"></span><br><span class="line">        binding.textView.text = <span class="string">&quot;text&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Activity 对应的 activity_main.xml 文件如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/textView&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>生成的 ActivityMainBinding 在 <code>module/build/generated/data_binding_base_class_source_out/$&#123;buildTypes&#125;/out/$&#123;包名&#125;/databinding</code> 目录，源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">ActivityMainBinding</span> <span class="keyword">implements</span> <span class="title class_">ViewBinding</span> &#123;</span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> LinearLayout rootView;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">final</span> TextView textView;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="title function_">ActivityMainBinding</span><span class="params">(<span class="meta">@NonNull</span> LinearLayout rootView, <span class="meta">@NonNull</span> TextView textView)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.rootView = rootView;</span><br><span class="line">    <span class="built_in">this</span>.textView = textView;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">public</span> LinearLayout <span class="title function_">getRoot</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> rootView;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> ActivityMainBinding <span class="title function_">inflate</span><span class="params">(<span class="meta">@NonNull</span> LayoutInflater inflater)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> inflate(inflater, <span class="literal">null</span>, <span class="literal">false</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> ActivityMainBinding <span class="title function_">inflate</span><span class="params">(<span class="meta">@NonNull</span> LayoutInflater inflater, <span class="meta">@Nullable</span> ViewGroup parent,</span></span><br><span class="line"><span class="params">      <span class="type">boolean</span> attachToParent)</span> &#123;</span><br><span class="line">    <span class="type">View</span> <span class="variable">root</span> <span class="operator">=</span> inflater.inflate(R.layout.activity_main, parent, <span class="literal">false</span>);</span><br><span class="line">    <span class="keyword">if</span> (attachToParent) &#123;</span><br><span class="line">      parent.addView(root);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> bind(root);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@NonNull</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> ActivityMainBinding <span class="title function_">bind</span><span class="params">(<span class="meta">@NonNull</span> View rootView)</span> &#123;</span><br><span class="line">    <span class="comment">// The body of this method is generated in a way you would not otherwise write.</span></span><br><span class="line">    <span class="comment">// This is done to optimize the compiled bytecode for size and performance.</span></span><br><span class="line">    <span class="type">int</span> id;</span><br><span class="line">    missingId: &#123;</span><br><span class="line">      id = R.id.textView;</span><br><span class="line">      <span class="type">TextView</span> <span class="variable">textView</span> <span class="operator">=</span> rootView.findViewById(id);</span><br><span class="line">      <span class="keyword">if</span> (textView == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">break</span> missingId;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ActivityMainBinding</span>((LinearLayout) rootView, textView);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">String</span> <span class="variable">missingId</span> <span class="operator">=</span> rootView.getResources().getResourceName(id);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>(<span class="string">&quot;Missing required view with ID: &quot;</span>.concat(missingId));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Binding-类生成原理"><a href="#Binding-类生成原理" class="headerlink" title="Binding 类生成原理"></a>Binding 类生成原理</h2><p>由于 ViewBinding 类是通过 GradlePlugin 支持的，编译时包含有 DataBinding 相关的 task <code>Task :app:dataBindingGenBaseClassesDebug</code>。</p>
+<p><code>com.android.tools.build:gradle:4.1.3</code> 依赖 <code>androidx.databinding:databinding-compiler-common:4.1.3</code>，下载 <code>databinding-compiler-common</code> jar 包，解压到文件夹后使用 AS 打开查看源码。</p>
+<h3 id="解析-xml-文件"><a href="#解析-xml-文件" class="headerlink" title="解析 xml 文件"></a>解析 xml 文件</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Processes the layout XML, stripping the binding attributes and elements</span></span><br><span class="line"><span class="comment"> * and writes the information into an annotated class file for the annotation</span></span><br><span class="line"><span class="comment"> * processor to work with.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LayoutXmlProcessor</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">processResources</span><span class="params">(ResourceInput input, <span class="type">boolean</span> isViewBindingEnabled,</span></span><br><span class="line"><span class="params">        <span class="type">boolean</span> isDataBindingEnabled)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">ProcessFileCallback</span> <span class="variable">callback</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ProcessFileCallback</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">processLayoutFile</span><span class="params">(File file)</span> &#123;</span><br><span class="line">                processSingleFile(...);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 其他回调方法</span></span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (input.isIncremental()) &#123;</span><br><span class="line">            processIncrementalInputFiles(input, callback);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            processAllInputFiles(input, callback);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">processAllInputFiles</span><span class="params">(ResourceInput input, ProcessFileCallback callback)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (File firstLevel : input.getRootInputFolder().listFiles()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (firstLevel.isDirectory()) &#123;</span><br><span class="line">                <span class="comment">// 判断文件名是否已 layout 开头</span></span><br><span class="line">                <span class="keyword">if</span> (LAYOUT_FOLDER_FILTER.accept(firstLevel, firstLevel.getName())) &#123;</span><br><span class="line">                    callback.processLayoutFolder(firstLevel);</span><br><span class="line">                    <span class="comment">// 过滤以 “.xml” 结尾的文件</span></span><br><span class="line">                    <span class="keyword">for</span> (File xmlFile : firstLevel.listFiles(XML_FILE_FILTER)) &#123;</span><br><span class="line">                        callback.processLayoutFile(xmlFile);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">processSingleFile</span><span class="params">(RelativizableFile input, File output,</span></span><br><span class="line"><span class="params">                        <span class="type">boolean</span> isViewBindingEnabled,</span></span><br><span class="line"><span class="params">                        <span class="type">boolean</span> isDataBindingEnabled)</span> &#123;</span><br><span class="line">        <span class="comment">// 解析 xml</span></span><br><span class="line">        <span class="keyword">final</span> ResourceBundle.<span class="type">LayoutFileBundle</span> <span class="variable">bindingLayout</span> <span class="operator">=</span> LayoutFileParser.parseXml(input, output, ...);</span><br><span class="line">        <span class="comment">// 缓存解析的 xml</span></span><br><span class="line">        mResourceBundle.addLayoutBundle(bindingLayout, <span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">LayoutFileParser</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> ResourceBundle.LayoutFileBundle <span class="title function_">parseXml</span><span class="params">(<span class="keyword">final</span> RelativizableFile input,</span></span><br><span class="line"><span class="params">            <span class="keyword">final</span> File outputFile, ...)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> parseOriginalXml(</span><br><span class="line">                RelativizableFile.fromAbsoluteFile(originalFile, input.getBaseDir()),...);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ResourceBundle.LayoutFileBundle <span class="title function_">parseOriginalXml</span><span class="params">(</span></span><br><span class="line"><span class="params">            <span class="keyword">final</span> RelativizableFile originalFile, ...)</span> &#123;</span><br><span class="line">        <span class="type">File</span> <span class="variable">original</span> <span class="operator">=</span> originalFile.getAbsoluteFile();</span><br><span class="line">        <span class="comment">// 是否是 DataBinding</span></span><br><span class="line">        <span class="keyword">if</span> (isBindingData) &#123;</span><br><span class="line">            data = getDataNode(root);</span><br><span class="line">            rootView = getViewNode(original, root);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isViewBindingEnabled) &#123;</span><br><span class="line">            <span class="comment">// 排除不生成 Binding 类的 xml</span></span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&quot;true&quot;</span>.equalsIgnoreCase(attributeMap(root).get(<span class="string">&quot;tools:viewBindingIgnore&quot;</span>))) &#123;</span><br><span class="line">                L.d(<span class="string">&quot;Ignoring %s for view binding&quot;</span>, originalFile);</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            data = <span class="literal">null</span>;</span><br><span class="line">            rootView = root;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 判断是否是 merge 节点</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">isMerge</span> <span class="operator">=</span> <span class="string">&quot;merge&quot;</span>.equals(rootView.elmName.getText());</span><br><span class="line">        <span class="keyword">if</span> (isBindingData &amp;&amp; isMerge &amp;&amp; !filter(rootView, <span class="string">&quot;include&quot;</span>).isEmpty()) &#123;</span><br><span class="line">            L.e(ErrorMessages.INCLUDE_INSIDE_MERGE);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">rootViewType</span> <span class="operator">=</span> getViewName(rootView);</span><br><span class="line">        <span class="comment">// 获取 View ID</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">rootViewId</span> <span class="operator">=</span> attributeMap(rootView).get(<span class="string">&quot;android:id&quot;</span>);</span><br><span class="line">        <span class="comment">// 创建 LayoutFileBundle 对象</span></span><br><span class="line">        ResourceBundle.<span class="type">LayoutFileBundle</span> <span class="variable">bundle</span> <span class="operator">=</span></span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">ResourceBundle</span>.LayoutFileBundle(originalFile, ...);</span><br><span class="line">        <span class="comment">// ViewBinding data == null，不会解析</span></span><br><span class="line">        parseData(original, data, bundle);</span><br><span class="line">        <span class="comment">// 解析表达式</span></span><br><span class="line">        parseExpressions(newTag, rootView, isMerge, bundle);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> bundle;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">getViewName</span><span class="params">(XMLParser.ElementContext elm)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">viewName</span> <span class="operator">=</span> elm.elmName.getText();</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;view&quot;</span>.equals(viewName)) &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">classNode</span> <span class="operator">=</span> attributeMap(elm).get(<span class="string">&quot;class&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (Strings.isNullOrEmpty(classNode)) &#123;</span><br><span class="line">                L.e(<span class="string">&quot;No class attribute for &#x27;view&#x27; node&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> classNode;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;include&quot;</span>.equals(viewName) &amp;&amp; !XmlEditor.hasExpressionAttributes(elm)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;android.view.View&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;fragment&quot;</span>.equals(viewName)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;android.view.View&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> viewName;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="生成-xml-文件"><a href="#生成-xml-文件" class="headerlink" title="生成 xml 文件"></a>生成 xml 文件</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LayoutXmlProcessor</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writeLayoutInfoFiles</span><span class="params">(File xmlOutDir, JavaFileWriter writer)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (ResourceBundle.LayoutFileBundle layout : mResourceBundle</span><br><span class="line">                .getAllLayoutFileBundlesInSource()) &#123;</span><br><span class="line">            writeXmlFile(writer, xmlOutDir, layout);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeXmlFile</span><span class="params">(JavaFileWriter writer, File xmlOutDir,</span></span><br><span class="line"><span class="params">            ResourceBundle.LayoutFileBundle layout)</span> &#123;</span><br><span class="line">        <span class="comment">// layout.getFileName() + &#x27;-&#x27; + layout.getDirectory() + &quot;.xml</span></span><br><span class="line">        <span class="comment">// 如 activity_main.xml -&gt; activity_main-layout.xml</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">filename</span> <span class="operator">=</span> generateExportFileName(layout);</span><br><span class="line">        writer.writeToFile(<span class="keyword">new</span> <span class="title class_">File</span>(xmlOutDir, filename), layout.toXML());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>生成的 xml 文件路径为 <code>module/build/intermediates/data_binding_layout_info_type_merge/$&#123;buildTypes&#125;/out/activity_main-layout.xml</code>，描述了原始布局文件的相关信息。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; standalone=&quot;yes&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Layout</span></span></span><br><span class="line"><span class="tag">    <span class="attr">directory</span>=<span class="string">&quot;layout&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">filePath</span>=<span class="string">&quot;app\src\main\res\layout\activity_main.xml&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">isBindingData</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">isMerge</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">layout</span>=<span class="string">&quot;activity_main&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">modulePackage</span>=<span class="string">&quot;com.king.app.workhelper&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">rootNodeType</span>=<span class="string">&quot;android.widget.LinearLayout&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">Targets</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">Target</span></span></span><br><span class="line"><span class="tag">            <span class="attr">tag</span>=<span class="string">&quot;layout/activity_main_0&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">view</span>=<span class="string">&quot;LinearLayout&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">Expressions</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">location</span></span></span><br><span class="line"><span class="tag">                <span class="attr">endLine</span>=<span class="string">&quot;11&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">endOffset</span>=<span class="string">&quot;14&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">startLine</span>=<span class="string">&quot;1&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">startOffset</span>=<span class="string">&quot;0&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Target</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">Target</span></span></span><br><span class="line"><span class="tag">            <span class="attr">id</span>=<span class="string">&quot;@+id/textView&quot;</span></span></span><br><span class="line"><span class="tag">            <span class="attr">view</span>=<span class="string">&quot;TextView&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">Expressions</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;<span class="name">location</span></span></span><br><span class="line"><span class="tag">                <span class="attr">endLine</span>=<span class="string">&quot;9&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">endOffset</span>=<span class="string">&quot;46&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">startLine</span>=<span class="string">&quot;6&quot;</span></span></span><br><span class="line"><span class="tag">                <span class="attr">startOffset</span>=<span class="string">&quot;4&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">Target</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Targets</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Layout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="生成-Binding-类"><a href="#生成-Binding-类" class="headerlink" title="生成 Binding 类"></a>生成 Binding 类</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseDataBinder</span></span>(<span class="keyword">val</span> input : LayoutInfoInput) &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">generateAll</span><span class="params">(writer : <span class="type">JavaFileWriter</span>)</span></span> &#123;</span><br><span class="line">        input.invalidatedClasses.forEach &#123;</span><br><span class="line">            writer.deleteFile(it)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">val</span> useAndroidX = input.args.useAndroidX</span><br><span class="line">        <span class="keyword">val</span> libTypes = LibTypes(useAndroidX = useAndroidX)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取所有的 LayoutFileBundle，并根据文件名进行分组排序</span></span><br><span class="line">        <span class="keyword">val</span> layoutBindings = resourceBundle.allLayoutFileBundlesInSource</span><br><span class="line">            .groupBy(LayoutFileBundle::getFileName)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 遍历 layoutBindings</span></span><br><span class="line">        layoutBindings.forEach &#123; layoutName, variations -&gt;</span><br><span class="line">            <span class="comment">// 将 LayoutFileBundle 信息包装成 BaseLayoutModel</span></span><br><span class="line">            <span class="keyword">val</span> layoutModel = BaseLayoutModel(variations)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">val</span> javaFile: JavaFile</span><br><span class="line">            <span class="keyword">val</span> classInfo: GenClassInfoLog.GenClass</span><br><span class="line">            <span class="comment">// 处理 DataBinding</span></span><br><span class="line">            <span class="keyword">if</span> (variations.first().isBindingData) &#123;</span><br><span class="line">                <span class="comment">//...</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 处理 ViewBinding</span></span><br><span class="line">                <span class="comment">// 创建 ViewBinder 对象</span></span><br><span class="line">                <span class="keyword">val</span> viewBinder = layoutModel.toViewBinder()</span><br><span class="line">                <span class="comment">// 通过 ViewBinder 扩展方法，调用到 ViewBinderGenerateJava#create() 方法</span></span><br><span class="line">                javaFile = viewBinder.toJavaFile(useLegacyAnnotations = !useAndroidX)</span><br><span class="line">                classInfo = viewBinder.generatedClassInfo()</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            writer.writeToFile(javaFile)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ViewBinderGenerateJava.kt</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> ViewBinder.<span class="title">toJavaFile</span><span class="params">(useLegacyAnnotations: <span class="type">Boolean</span> = <span class="literal">false</span>)</span></span> =</span><br><span class="line">    JavaFileGenerator(<span class="keyword">this</span>, useLegacyAnnotations).create()</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaFileGenerator</span></span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> binder: ViewBinder,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> useLegacyAnnotations: <span class="built_in">Boolean</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用了 com.squareup.javapoet 库</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">create</span><span class="params">()</span></span> = javaFile(binder.generatedTypeName.packageName(), typeSpec()) &#123;</span><br><span class="line">        addFileComment(<span class="string">&quot;Generated by view binder compiler. Do not edit!&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">typeSpec</span><span class="params">()</span></span> = classSpec(binder.generatedTypeName) &#123;</span><br><span class="line">        addModifiers(PUBLIC, FINAL)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">val</span> viewBindingPackage = <span class="keyword">if</span> (useLegacyAnnotations) <span class="string">&quot;android&quot;</span> <span class="keyword">else</span> <span class="string">&quot;androidx&quot;</span></span><br><span class="line">        addSuperinterface(ClassName.<span class="keyword">get</span>(<span class="string">&quot;<span class="variable">$viewBindingPackage</span>.viewbinding&quot;</span>, <span class="string">&quot;ViewBinding&quot;</span>))</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 生成 rootView 字段</span></span><br><span class="line">        addField(rootViewField())</span><br><span class="line">        <span class="comment">// 生成 View 字段</span></span><br><span class="line">        addFields(bindingFields())</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 生成构造方法</span></span><br><span class="line">        addMethod(<span class="keyword">constructor</span>())</span><br><span class="line">        <span class="comment">// 生成获取 rootView 的方法</span></span><br><span class="line">        addMethod(rootViewGetter())</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (binder.rootNode <span class="keyword">is</span> RootNode.Merge) &#123;</span><br><span class="line">            addMethod(mergeInflate())</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 生成 inflate(LayoutInflater inflater) 方法</span></span><br><span class="line">            addMethod(oneParamInflate())</span><br><span class="line">            <span class="comment">// 生成 inflate(LayoutInflater inflater, ViewGroup parent, boolean attachToParent) 方法</span></span><br><span class="line">            addMethod(threeParamInflate())</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        addMethod(bind())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>遍历收集的 <code>Set&lt;LayoutFileBundle&gt;</code>;</li>
+<li>根据 <code>LayoutFileBundle</code> 生成 <code>ViewBinder</code> 对象；</li>
+<li>ViewBinder 传参给 <code>JavaFileGenerator</code>，通过 <code>JavaPoet(com.squareup.javapoet)</code> 库生成 Binding Class 文件。</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://developer.android.com/topic/libraries/view-binding">[1] ViewBinding - Developer</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/ZnTGMPMxm9dpJ3_mlzCNXw">[2] 终于有人写：「新技术 ViewBinding」 的本质了</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904065655111693">[3] [译]深入研究 ViewBinding 在 include, merge, adapter, fragment, activity 中使用</a><br><a target="_blank" rel="noopener" href="https://github.com/hoc081098/ViewBindingDelegate">[4] hoc081098&#x2F;ViewBindingDelegate</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Jetpack/" rel="tag"># Jetpack</a>
+              <a href="/tags/ViewBinding/" rel="tag"># ViewBinding</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/02/02/Android-View-%E4%BA%8B%E4%BB%B6%E4%BC%A0%E9%80%92%E6%9C%BA%E5%88%B6/" rel="prev" title="Android View 事件传递机制">
+                  <i class="fa fa-chevron-left"></i> Android View 事件传递机制
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/02/Android-Jetpack-%E4%B9%8B-Lifecycle-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="next" title="Android Jetpack 之 Lifecycle 源码分析">
+                  Android Jetpack 之 Lifecycle 源码分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vance</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
